@@ -1,0 +1,66 @@
+// ============================================
+// Innovation Music CMS — SCSS Variables
+// ============================================
+
+// カラーパレット (赤×黒テーマ)
+$color-bg:          #0a0a0a;     // ページ背景 (ほぼ黒)
+$color-bg-card:     #111111;     // カード背景
+$color-bg-elevated: #1a1a1a;     // 少し浮いた要素
+$color-border:      #2a2a2a;     // ボーダー
+$color-accent:      #e53e3e;     // メインアクセント (レッド)
+$color-accent-alt:  #fc8181;     // サブアクセント (ライトレッド)
+$color-text:        #e8e8e8;     // メインテキスト
+$color-text-muted:  #888888;     // ミュートテキスト
+$color-white:       #ffffff;
+
+// グラデーション
+$gradient-accent: linear-gradient(135deg, $color-accent, $color-accent-alt);
+$gradient-dark:   linear-gradient(180deg, $color-bg 0%, #0d0000 100%);
+
+// タイポグラフィ
+$font-sans:    var(--font-inter), sans-serif;
+$font-display: var(--font-syne), sans-serif;
+
+// フォントサイズ
+$text-xs:   0.75rem;
+$text-sm:   0.875rem;
+$text-base: 1rem;
+$text-lg:   1.125rem;
+$text-xl:   1.25rem;
+$text-2xl:  1.5rem;
+$text-3xl:  1.875rem;
+$text-4xl:  2.25rem;
+$text-5xl:  3rem;
+
+// スペーシング
+$section-py:    5rem;
+$section-py-lg: 7rem;
+$container-px:    1.5rem;
+$container-px-lg: 2rem;
+
+// ブレークポイント
+$bp-sm:  640px;
+$bp-md:  768px;
+$bp-lg:  1024px;
+$bp-xl:  1280px;
+$bp-2xl: 1536px;
+
+// ボーダー半径
+$radius-sm:   0.25rem;
+$radius-base: 0.5rem;
+$radius-lg:   0.75rem;
+$radius-xl:   1rem;
+$radius-full: 9999px;
+
+// シャドウ
+$shadow-accent: 0 0 20px rgba(229, 62, 62, 0.3);
+$shadow-card:   0 4px 24px rgba(0, 0, 0, 0.4);
+
+// トランジション
+$transition-base: all 0.3s ease;
+$transition-fast: all 0.15s ease;
+
+// z-index
+$z-header:  50;
+$z-modal:   100;
+$z-overlay: 90;
