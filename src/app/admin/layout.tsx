@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import AdminTopBar from '@/components/admin/TopBar'
+import type { Profile } from '@/types/supabase'
 
 export default async function AdminLayout({
   children,
@@ -25,11 +26,12 @@ export default async function AdminLayout({
     return <>{children}</>
   }
 
-  const { data: profile } = await supabase
+  const { data } = await supabase
     .from('profiles')
     .select('full_name, role, avatar_url')
     .eq('id', user.id)
     .single()
+  const profile = data as Pick<Profile, 'full_name' | 'role' | 'avatar_url'> | null
 
   return (
     <div className="flex h-screen bg-[#0d0d14] text-white">
