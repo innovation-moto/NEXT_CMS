@@ -10,17 +10,11 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient()
 
-  let user = null
-  try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
-  } catch {
-    // 認証エラー時はchildrenのみ返す（ログインページ等）
-    return <>{children}</>
-  }
+  // セキュリティ（認証チェック）はmiddlewareが担当
+  // layoutではセッション情報の読み取りのみ行う（ネットワーク不要）
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
 
-  // ユーザーがいない場合はchildrenのみ（ログインページ）
-  // ミドルウェアが保護ルートのリダイレクトを担当する
   if (!user) {
     return <>{children}</>
   }
