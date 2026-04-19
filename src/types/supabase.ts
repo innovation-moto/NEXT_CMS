@@ -1,5 +1,6 @@
 // ============================================
 // Innovation Music CMS — Supabase型定義
+// @supabase/supabase-js v2 が期待する完全な形式
 // ============================================
 
 export type Json =
@@ -10,7 +11,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       posts: {
@@ -58,6 +59,7 @@ export interface Database {
           published_at?: string | null
           updated_at?: string
         }
+        Relationships: []
       }
       categories: {
         Row: {
@@ -81,6 +83,7 @@ export interface Database {
           type?: 'blog' | 'news'
           sort_order?: number
         }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -103,6 +106,7 @@ export interface Database {
           avatar_url?: string | null
           role?: 'admin' | 'editor'
         }
+        Relationships: []
       }
       contact_messages: {
         Row: {
@@ -131,6 +135,7 @@ export interface Database {
           message?: string
           is_read?: boolean
         }
+        Relationships: []
       }
       media: {
         Row: {
@@ -159,7 +164,20 @@ export interface Database {
           mime_type?: string | null
           uploaded_by?: string | null
         }
+        Relationships: []
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }

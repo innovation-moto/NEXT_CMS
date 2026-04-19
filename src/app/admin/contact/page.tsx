@@ -1,12 +1,14 @@
 import { adminSupabase } from '@/lib/supabase/admin'
 import { formatDate } from '@/lib/utils'
 import MarkReadButton from './MarkReadButton'
+import type { ContactMessage } from '@/types/supabase'
 
 export default async function AdminContactPage() {
-  const { data: messages } = await adminSupabase
+  const { data } = await adminSupabase
     .from('contact_messages')
     .select('*')
     .order('created_at', { ascending: false })
+  const messages = data as ContactMessage[] | null
 
   const unreadCount = messages?.filter((m) => !m.is_read).length ?? 0
 

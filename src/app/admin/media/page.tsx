@@ -3,12 +3,14 @@ import { formatDate, formatFileSize } from '@/lib/utils'
 import Image from 'next/image'
 import MediaUploadButton from './MediaUploadButton'
 import CopyUrlButton from './CopyUrlButton'
+import type { Media } from '@/types/supabase'
 
 export default async function AdminMediaPage() {
-  const { data: mediaItems, error } = await adminSupabase
+  const { data, error } = await adminSupabase
     .from('media')
     .select('*')
     .order('created_at', { ascending: false })
+  const mediaItems = data as Media[] | null
 
   // テーブルが存在しない場合のフォールバック
   if (error) {
