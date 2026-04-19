@@ -128,16 +128,12 @@ export default function EditPostPage() {
 
     const result = await updatePost(params.id, formData)
     if (result?.error) {
-      if (typeof result.error === 'string') {
-        setFormError(result.error)
-      } else {
-        setErrors(result.error.fieldErrors ?? {})
-        setFormError(
-          result.error.formErrors?.length
-            ? result.error.formErrors[0]
-            : '入力内容にエラーがあります。各項目を確認してください。'
-        )
-      }
+      setErrors(result.error.fieldErrors ?? {})
+      setFormError(
+        result.error.formErrors?.length
+          ? result.error.formErrors[0]
+          : '入力内容にエラーがあります。各項目を確認してください。'
+      )
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       setFormError(null)
