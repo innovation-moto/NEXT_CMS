@@ -24,6 +24,7 @@ export interface Database {
           status: 'draft' | 'published' | 'archived'
           thumbnail: string | null
           author_id: string | null
+          category_id: string | null
           published_at: string | null
           created_at: string
           updated_at: string
@@ -38,6 +39,7 @@ export interface Database {
           status?: 'draft' | 'published' | 'archived'
           thumbnail?: string | null
           author_id?: string | null
+          category_id?: string | null
           published_at?: string | null
           created_at?: string
           updated_at?: string
@@ -52,6 +54,7 @@ export interface Database {
           status?: 'draft' | 'published' | 'archived'
           thumbnail?: string | null
           author_id?: string | null
+          category_id?: string | null
           published_at?: string | null
           updated_at?: string
         }
@@ -61,33 +64,22 @@ export interface Database {
           id: string
           name: string
           slug: string
-          type: 'blog' | 'news' | 'both'
+          type: 'blog' | 'news'
+          sort_order: number
         }
         Insert: {
           id?: string
           name: string
           slug: string
-          type?: 'blog' | 'news' | 'both'
+          type?: 'blog' | 'news'
+          sort_order?: number
         }
         Update: {
           id?: string
           name?: string
           slug?: string
-          type?: 'blog' | 'news' | 'both'
-        }
-      }
-      post_categories: {
-        Row: {
-          post_id: string
-          category_id: string
-        }
-        Insert: {
-          post_id: string
-          category_id: string
-        }
-        Update: {
-          post_id?: string
-          category_id?: string
+          type?: 'blog' | 'news'
+          sort_order?: number
         }
       }
       profiles: {
@@ -177,6 +169,7 @@ export type Post = Database['public']['Tables']['posts']['Row']
 export type PostInsert = Database['public']['Tables']['posts']['Insert']
 export type PostUpdate = Database['public']['Tables']['posts']['Update']
 export type Category = Database['public']['Tables']['categories']['Row']
+export type CategoryInsert = Database['public']['Tables']['categories']['Insert']
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ContactMessage = Database['public']['Tables']['contact_messages']['Row']
 export type Media = Database['public']['Tables']['media']['Row']
