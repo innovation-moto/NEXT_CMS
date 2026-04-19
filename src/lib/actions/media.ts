@@ -36,13 +36,15 @@ export async function uploadImage(formData: FormData) {
     } = adminSupabase.storage.from('media').getPublicUrl(data.path)
 
     // メディアテーブルに記録（失敗してもURLは返す）
-    await adminSupabase.from('media').insert({
-      filename: file.name,
-      url: publicUrl,
-      size: file.size,
-      mime_type: file.type,
-      uploaded_by: user.id,
-    }).catch(() => {})
+    try {
+      await adminSupabase.from('media').insert({
+        filename: file.name,
+        url: publicUrl,
+        size: file.size,
+        mime_type: file.type,
+        uploaded_by: user.id,
+      })
+    } catch { /* 記録失敗は無視 */ }
 
     return { url: publicUrl }
   } catch (err) {
