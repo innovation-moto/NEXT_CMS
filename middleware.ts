@@ -23,10 +23,14 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  // レイアウトがパスを判断できるようにヘッダーで渡す
-  const response = NextResponse.next()
-  response.headers.set('x-pathname', pathname)
-  return response
+  // レイアウトがパスを判断できるようにリクエストヘッダーで渡す
+  // ※ response.headers ではなく request.headers に設定しないと
+  //    サーバーコンポーネントの headers() で読めない
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+  return NextResponse.next({
+    request: { headers: requestHeaders },
+  })
 }
 
 export const config = {
