@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import AdminTopBar from '@/components/admin/TopBar'
@@ -35,9 +34,7 @@ export default async function AdminLayout({
 
   return (
     <div className="flex h-screen bg-[#0d0d14] text-white">
-      <Suspense fallback={<div className="w-60 flex-shrink-0 bg-[#111118]" />}>
-        <AdminSidebar userRole={profile?.role ?? 'editor'} />
-      </Suspense>
+      <AdminSidebar userRole={profile?.role ?? 'editor'} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminTopBar
           user={{

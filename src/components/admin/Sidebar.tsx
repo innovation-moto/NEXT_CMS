@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface NavItem {
   href: string
@@ -25,8 +26,14 @@ interface Props {
 
 export default function AdminSidebar({ userRole }: Props) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const [currentType, setCurrentType] = useState<string | null>(null)
   const isAdmin = userRole === 'admin'
+
+  // useSearchParams の代わりに useEffect で読み取り（Suspense不要にするため）
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setCurrentType(params.get('type'))
+  }, [pathname])
 
   const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin)
 
@@ -39,7 +46,8 @@ export default function AdminSidebar({ userRole }: Props) {
     // クエリパラメータがある場合はそれも一致確認
     if (itemQuery) {
       const [key, value] = itemQuery.split('=')
-      return searchParams.get(key) === value
+      if (key === 'type') return currentType === value
+      return true
     }
 
     return true
