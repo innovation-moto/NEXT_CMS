@@ -34,7 +34,7 @@ export default async function NewsPage({
     .range((page - 1) * PER_PAGE, page * PER_PAGE - 1)
 
   // カテゴリ名をまとめて取得
-  const categoryIds = [...new Set((posts ?? []).map((p: any) => p.category_id).filter(Boolean))]
+  const categoryIds = Array.from(new Set((posts ?? []).map((p: any) => p.category_id).filter(Boolean)))
   let categoryMap: Record<string, string> = {}
   if (categoryIds.length > 0) {
     const { data: cats } = await adminSupabase

@@ -49,7 +49,7 @@ export default async function HomePage() {
 
   // カテゴリ名をまとめて取得
   const allPosts = [...(newsPosts ?? []), ...(blogPosts ?? [])]
-  const categoryIds = [...new Set(allPosts.map((p: any) => p.category_id).filter(Boolean))]
+  const categoryIds = Array.from(new Set(allPosts.map((p: any) => p.category_id).filter(Boolean)))
   let categoryMap: Record<string, string> = {}
   if (categoryIds.length > 0) {
     const { data: cats } = await adminSupabase
