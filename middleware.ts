@@ -1,13 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
   // Supabase auth クッキーの存在でログイン状態を確認
-  // getSession()/getUser() はEdge環境で失敗するためクッキー直接確認
   const isLoggedIn = request.cookies.getAll().some(
     (c) => c.name.startsWith('sb-') && c.name.includes('-auth-token')
   )
-
-  const { pathname } = request.nextUrl
 
   // 管理者ルートの保護（/admin/login 以外）
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
@@ -24,7 +23,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  return NextResponse.next()
+  // レイアウトがパスを判断できるようにヘッダーで渡す
+  const response = NextResponse.next()
+  response.headers.set('x-pathname', pathname)
+  return response
 }
 
 export const config = {
