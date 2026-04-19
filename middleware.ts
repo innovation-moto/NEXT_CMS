@@ -1,70 +1,30 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: object }>) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
+export function middleware(request: NextRequest) {
+  // Supabase auth クッキーの存在でログイン状態を確認
+  // getSession()/getUser() はEdge環境で失敗するためクッキー直接確認
+  const isLoggedIn = request.cookies.getAll().some(
+    (c) => c.name.startsWith('sb-') && c.name.includes('-auth-token')
   )
 
-  // 環境変数が未設定の場合はミドルウェアをスキップ（設定ミスによる無限リダイレクト防止）
-  if (
-    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    process.env.NEXT_PUBLIC_SUPABASE_URL.includes('xxxx') ||
-    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === 'eyJ...'
-  ) {
-    return supabaseResponse
-  }
+  const { pathname } = request.nextUrl
 
-  // getSession はクッキーを直接読むだけ（ネットワーク不要・確実）
-  // セキュリティ上は getUser が望ましいが、本番環境でのネットワーク失敗を避けるため
-  // getSession を使用（ミドルウェアでの最低限のルーティング保護）
-  let sessionUser = null
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-    sessionUser = session?.user ?? null
-  } catch {
-    return supabaseResponse
-  }
-
-  // 管理者ルートの保護
-  if (
-    request.nextUrl.pathname.startsWith('/admin') &&
-    !request.nextUrl.pathname.startsWith('/admin/login')
-  ) {
-    if (!sessionUser) {
+  // 管理者ルートの保護（/admin/login 以外）
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+    if (!isLoggedIn) {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/admin/login'
-      redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
+      redirectUrl.searchParams.set('redirectedFrom', pathname)
       return NextResponse.redirect(redirectUrl)
     }
   }
 
-  // ログイン済みならloginページへのアクセス不要
-  if (request.nextUrl.pathname === '/admin/login' && sessionUser) {
+  // ログイン済みなら /admin/login → /admin にリダイレクト
+  if (pathname === '/admin/login' && isLoggedIn) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {
