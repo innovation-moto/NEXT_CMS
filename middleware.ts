@@ -35,13 +35,14 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // セッション更新（重要：常に実行する）
-  let user = null
+  // getSession はクッキーを直接読むだけ（ネットワーク不要・確実）
+  // セキュリティ上は getUser が望ましいが、本番環境でのネットワーク失敗を避けるため
+  // getSession を使用（ミドルウェアでの最低限のルーティング保護）
+  let sessionUser = null
   try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
+    const { data: { session } } = await supabase.auth.getSession()
+    sessionUser = session?.user ?? null
   } catch {
-    // Supabase接続エラー時はミドルウェアをスキップ
     return supabaseResponse
   }
 
@@ -50,7 +51,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/admin') &&
     !request.nextUrl.pathname.startsWith('/admin/login')
   ) {
-    if (!user) {
+    if (!sessionUser) {
       const redirectUrl = request.nextUrl.clone()
       redirectUrl.pathname = '/admin/login'
       redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
@@ -59,7 +60,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // ログイン済みならloginページへのアクセス不要
-  if (request.nextUrl.pathname === '/admin/login' && user) {
+  if (request.nextUrl.pathname === '/admin/login' && sessionUser) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
