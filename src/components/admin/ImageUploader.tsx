@@ -30,18 +30,22 @@ export default function ImageUploader({ value, onChange, label = 'サムネイ�
     const formData = new FormData()
     formData.append('file', file)
 
-    const result = await uploadImage(formData)
-
-    if (result.error) {
-      setError(result.error)
+    try {
+      const result = await uploadImage(formData)
+      if (result.error) {
+        setError(result.error)
+        setPreview(value ?? null)
+      } else if (result.url) {
+        setPreview(result.url)
+        onChange?.(result.url)
+      }
+    } catch {
+      setError('アップロードに失敗しました。再度お試しください。')
       setPreview(value ?? null)
-    } else if (result.url) {
-      setPreview(result.url)
-      onChange?.(result.url)
+    } finally {
+      setUploading(false)
+      URL.revokeObjectURL(objectUrl)
     }
-
-    setUploading(false)
-    URL.revokeObjectURL(objectUrl)
   }
 
   function handleRemove() {

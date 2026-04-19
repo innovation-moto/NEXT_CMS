@@ -7,8 +7,8 @@ import { revalidatePath } from 'next/cache'
 export async function toggleMessageRead(id: string, isRead: boolean) {
   // 認証チェック
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: '認証が必要です' }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: '認証が必要です' }
 
   const { error } = await adminSupabase
     .from('contact_messages')

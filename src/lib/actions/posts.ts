@@ -8,12 +8,9 @@ import { redirect } from 'next/navigation'
 // 認証チェックヘルパー
 async function requireAuth() {
   const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-  if (error || !user) redirect('/admin/login')
-  return { supabase, user }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) redirect('/admin/login')
+  return { supabase, user: session.user }
 }
 
 export async function createPost(formData: FormData) {

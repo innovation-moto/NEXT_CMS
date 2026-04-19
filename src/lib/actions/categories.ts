@@ -36,8 +36,8 @@ export async function createCategory(
   const supabase = await createClient()
 
   // 認証チェック
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: '認証が必要です' }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: '認証が必要です' }
 
   // 重複チェック（adminクライアントでRLSバイパス）
   const { data: existing } = await adminSupabase
@@ -76,8 +76,8 @@ export async function deleteCategory(
   const supabase = await createClient()
 
   // 認証チェック
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: '認証が必要です' }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: '認証が必要です' }
 
   // このカテゴリを使用している投稿数を確認
   const { count } = await adminSupabase

@@ -9,10 +9,9 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 export async function uploadImage(formData: FormData) {
   // 認証チェック
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: '認証が必要です' }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: '認証が必要です' }
+  const user = session.user
 
   const file = formData.get('file') as File | null
   if (!file) return { error: 'ファイルが見つかりません' }
@@ -49,10 +48,8 @@ export async function uploadImage(formData: FormData) {
 
 export async function deleteMedia(id: string, filename: string) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: '認証が必要です' }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: '認証が必要です' }
 
   await adminSupabase.storage.from('media').remove([filename])
   await adminSupabase.from('media').delete().eq('id', id)

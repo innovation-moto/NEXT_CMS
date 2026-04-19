@@ -6,10 +6,9 @@ import { userSchema } from '@/lib/validations/user'
 
 async function requireAdmin() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) return { error: '認証が必要です' }
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session?.user) return { error: '認証が必要です' }
+  const user = session.user
 
   const { data: profile } = await supabase
     .from('profiles')
