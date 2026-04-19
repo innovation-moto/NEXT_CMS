@@ -95,6 +95,7 @@ export default function RichTextEditor({ content = '', onChange }: Props) {
   }
 
   function handleInsertImage() {
+    if (!editor) return
     const url = prompt('画像URLを入力してください:')
     if (url && url.trim()) {
       editor.chain().focus().setImage({ src: url.trim() }).run()
