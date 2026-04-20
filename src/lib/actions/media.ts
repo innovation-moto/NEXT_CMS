@@ -7,6 +7,9 @@ const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function uploadImage(formData: FormData) {
+  // DEBUG: 関数が呼ばれているか確認
+  return { error: 'DEBUG: サーバーアクションが実行されました' }
+
   try {
     // クッキー直接確認（getSession はVercel本番でネットワーク障害時にnullを返すため）
     const { cookies } = await import('next/headers')
