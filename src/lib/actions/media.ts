@@ -8,11 +8,16 @@ const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function uploadImage(formData: FormData) {
   try {
-    // 認証チェック（getSession はネットワーク不要）
+    // クッキー直接確認（getSession はVercel本番でネットワーク障害時にnullを返すため）
+    const { cookies } = await import('next/headers')
+    const cookieStore = await cookies()
+    const isLoggedIn = cookieStore.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
+    if (!isLoggedIn) return { error: '認証が必要です（再ログインしてください）' }
+
+    // user.id はメディアテーブル記録用（なくてもアップロードは可能）
     const supabase = await createClient()
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return { error: '認証が必要です（再ログインしてください）' }
-    const user = session.user
+    const user = session?.user ?? null
 
     const file = formData.get('file') as File | null
     if (!file) return { error: 'ファイルが見つかりません' }
@@ -42,7 +47,7 @@ export async function uploadImage(formData: FormData) {
         url: publicUrl,
         size: file.size,
         mime_type: file.type,
-        uploaded_by: user.id,
+        uploaded_by: user?.id ?? null,
       })
     } catch { /* 記録失敗は無視 */ }
 
