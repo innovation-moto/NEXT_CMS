@@ -20,10 +20,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  return NextResponse.next()
+  // x-pathname をリクエストヘッダーとして渡す（layoutのバックアップ保護用）
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-pathname', pathname)
+  return NextResponse.next({ request: { headers: requestHeaders } })
 }
 
 export const config = {
-  // /admin 配下のみに絞ることでEdge環境での誤作動を防ぐ
-  matcher: ['/admin/:path*'],
+  // /admin(.*) で /admin 単体も確実に捕捉する
+  matcher: ['/admin(.*)'],
 }

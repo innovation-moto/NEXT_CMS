@@ -1,4 +1,5 @@
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import AdminTopBar from '@/components/admin/TopBar'
@@ -10,14 +11,17 @@ export default async function AdminLayout({
 }) {
   // クッキーの存在でログイン状態を確認（ネットワーク不要、確実）
   const cookieStore = await cookies()
-  const allCookies = cookieStore.getAll()
-  const isLoggedIn = allCookies.some(
-    (c) => c.name.startsWith('sb-') && c.name.includes('-auth-token')
-  )
+  const isLoggedIn = cookieStore.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
 
-  // 未ログイン: サイドバー・トップバーなしでchildrenのみ表示
-  // （リダイレクトはmiddlewareが担当）
   if (!isLoggedIn) {
+    // middlewareがリクエストヘッダーに設定したパス名を読む
+    const headersList = await headers()
+    const pathname = headersList.get('x-pathname') ?? ''
+    // ログインページ以外ならリダイレクト（middlewareのバックアップ）
+    if (!pathname.startsWith('/admin/login')) {
+      redirect('/admin/login')
+    }
+    // ログインページはそのまま表示
     return <>{children}</>
   }
 
