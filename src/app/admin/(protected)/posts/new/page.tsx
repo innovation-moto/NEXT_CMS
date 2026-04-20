@@ -120,7 +120,11 @@ export default function NewPostPage({
     formData.set('body', body)
     formData.set('thumbnail', thumbnail)
     formData.set('category_id', categoryId)
-    formData.set('published_at', finalStatus === 'published' && publishedAt ? publishedAt : '')
+    // datetime-local の値は "2026-04-20T13:27" 形式のため ":00Z" を付与してISO 8601に変換
+    const publishedAtValue = finalStatus === 'published' && publishedAt
+      ? new Date(publishedAt).toISOString()
+      : ''
+    formData.set('published_at', publishedAtValue)
 
     const result = await createPost(formData)
     if (result?.error) {
