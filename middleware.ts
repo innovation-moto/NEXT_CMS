@@ -4,37 +4,26 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Supabase auth クッキーの存在でログイン状態を確認
-  const isLoggedIn = request.cookies.getAll().some(
-    (c) => c.name.startsWith('sb-') && c.name.includes('-auth-token')
-  )
+  const isLoggedIn = request.cookies.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
 
-  // 管理者ルートの保護（/admin/login 以外）
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+  // /admin/login 以外の管理者ルートは認証必須
+  if (!pathname.startsWith('/admin/login')) {
     if (!isLoggedIn) {
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/admin/login'
-      redirectUrl.searchParams.set('redirectedFrom', pathname)
-      return NextResponse.redirect(redirectUrl)
+      const url = request.nextUrl.clone()
+      url.pathname = '/admin/login'
+      return NextResponse.redirect(url)
     }
   }
 
-  // ログイン済みなら /admin/login → /admin にリダイレクト
+  // ログイン済みで /admin/login にアクセス → /admin にリダイレクト
   if (pathname === '/admin/login' && isLoggedIn) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  // レイアウトがパスを判断できるようにリクエストヘッダーで渡す
-  // ※ response.headers ではなく request.headers に設定しないと
-  //    サーバーコンポーネントの headers() で読めない
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-pathname', pathname)
-  return NextResponse.next({
-    request: { headers: requestHeaders },
-  })
+  return NextResponse.next()
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  // /admin 配下のみに絞ることでEdge環境での誤作動を防ぐ
+  matcher: ['/admin/:path*'],
 }
