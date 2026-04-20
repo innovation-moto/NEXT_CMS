@@ -20,10 +20,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin', request.url))
   }
 
-  // x-pathname をリクエストヘッダーとして渡す（layoutのバックアップ保護用）
-  const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-pathname', pathname)
-  return NextResponse.next({ request: { headers: requestHeaders } })
+  return NextResponse.next()
 }
 
 export const config = {
