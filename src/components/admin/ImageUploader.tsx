@@ -2,7 +2,6 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
-import { uploadImage } from '@/lib/actions/media'
 
 interface Props {
   value?: string
@@ -31,11 +30,9 @@ export default function ImageUploader({ value, onChange, label = 'サムネイ�
     formData.append('file', file)
 
     try {
-      const result = await uploadImage(formData)
-      if (!result) {
-        setError('サーバーから応答がありませんでした（環境変数を確認してください）')
-        setPreview(value ?? null)
-      } else if (result.error) {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      const result = await res.json() as { url?: string; error?: string }
+      if (result.error) {
         setError(result.error)
         setPreview(value ?? null)
       } else if (result.url) {
