@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   value?: string
@@ -26,18 +27,25 @@ export default function ImageUploader({ value, onChange, label = 'サムネイ�
     const objectUrl = URL.createObjectURL(file)
     setPreview(objectUrl)
 
-    const formData = new FormData()
-    formData.append('file', file)
-
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      const result = await res.json() as { url?: string; error?: string }
-      if (result.error) {
-        setError(result.error)
+      // Vercel の4.5MB制限を回避するため、ブラウザから直接 Supabase Storage へアップロード
+      const supabase = createClient()
+      const ext = file.name.split('.').pop()
+      const filename = `${crypto.randomUUID()}.${ext}`
+
+      const { data, error } = await supabase.storage
+        .from('media')
+        .upload(filename, file, { contentType: file.type, upsert: false })
+
+      if (error) {
+        setError(`アップロード失敗: ${error.message}`)
         setPreview(value ?? null)
-      } else if (result.url) {
-        setPreview(result.url)
-        onChange?.(result.url)
+      } else {
+        const { data: { publicUrl } } = supabase.storage
+          .from('media')
+          .getPublicUrl(data.path)
+        setPreview(publicUrl)
+        onChange?.(publicUrl)
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
