@@ -1,5 +1,6 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { adminSupabase } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
@@ -7,23 +8,28 @@ const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
 
 export async function uploadImage(formData: FormData) {
-  // DEBUG: 関数が呼ばれているか確認
-  return { error: 'DEBUG: サーバーアクションが実行されました' }
-
   try {
-    // クッキー直接確認（getSession はVercel本番でネットワーク障害時にnullを返すため）
-    const { cookies } = await import('next/headers')
+    // クッキー直接確認（getSession はVercel本番で失敗するケースがあるため）
     const cookieStore = await cookies()
     const isLoggedIn = cookieStore.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
     if (!isLoggedIn) return { error: '認証が必要です（再ログインしてください）' }
 
-    // user.id はメディアテーブル記録用（なくてもアップロードは可能）
+    // user.id はメディアテーブル記録用（取得失敗してもアップロード自体は続行）
     const supabase = await createClient()
     const { data: { session } } = await supabase.auth.getSession()
-    const user = session?.user ?? null
+    const userId = session?.user?.id ?? null
 
-    const file = formData.get('file') as File | null
-    if (!file) return { error: 'ファイルが見つかりません' }
+    const fileEntry = formData.get('file')
+    if (!fileEntry || typeof fileEntry === 'string') return { error: 'ファイルが見つかりません' }
+
+    // FormDataEntryValue を File として扱う
+    const file = fileEntry as unknown as {
+      type: string
+      size: number
+      name: string
+      arrayBuffer: () => Promise<ArrayBuffer>
+    }
+
     if (!ALLOWED_MIME_TYPES.includes(file.type))
       return { error: '許可されていないファイル形式です (JPEG, PNG, WebP, GIF のみ)' }
     if (file.size > MAX_SIZE)
@@ -50,7 +56,7 @@ export async function uploadImage(formData: FormData) {
         url: publicUrl,
         size: file.size,
         mime_type: file.type,
-        uploaded_by: user?.id ?? null,
+        uploaded_by: userId,
       })
     } catch { /* 記録失敗は無視 */ }
 
@@ -62,9 +68,9 @@ export async function uploadImage(formData: FormData) {
 }
 
 export async function deleteMedia(id: string, filename: string) {
-  const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return { error: '認証が必要です' }
+  const cookieStore = await cookies()
+  const isLoggedIn = cookieStore.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
+  if (!isLoggedIn) return { error: '認証が必要です' }
 
   await adminSupabase.storage.from('media').remove([filename])
   await adminSupabase.from('media').delete().eq('id', id)
