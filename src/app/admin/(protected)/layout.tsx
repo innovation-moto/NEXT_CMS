@@ -18,7 +18,9 @@ export default async function AdminProtectedLayout({
 
   // 未ログイン → ログインページへ（このレイアウトは /admin/login に適用されないため無限ループなし）
   if (!isLoggedIn) {
-    redirect('/admin/login')
+    // TODO: redirect はサーバーアクションのレスポンスをキャンセルしてしまう問題を調査中
+    // redirect('/admin/login')
+    return <>{children}</>
   }
 
   // ログイン済み：ユーザー情報取得
