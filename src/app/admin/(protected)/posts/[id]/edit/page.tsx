@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { updatePost } from '@/lib/actions/posts'
 import { createCategory, deleteCategory, type Category } from '@/lib/actions/categories'
 import RichTextEditor from '@/components/admin/RichTextEditor'
+import DateTimePicker from '@/components/admin/DateTimePicker'
 import ImageUploader from '@/components/admin/ImageUploader'
 import { createClient } from '@/lib/supabase/client'
 import type { Post } from '@/types/supabase'
@@ -351,11 +352,9 @@ export default function EditPostPage() {
             {/* 公開日時 */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">公開日時</label>
-              <input
-                type="datetime-local"
+              <DateTimePicker
                 value={publishedAt}
-                onChange={(e) => setPublishedAt(e.target.value)}
-                className={inputClass}
+                onChange={setPublishedAt}
               />
               <p className="mt-1 text-xs text-[#555]">未入力で公開すると保存時刻が自動設定されます</p>
             </div>

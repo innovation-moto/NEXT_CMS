@@ -6,6 +6,7 @@ import { createCategory, deleteCategory, type Category } from '@/lib/actions/cat
 import { createClient } from '@/lib/supabase/client'
 import RichTextEditor from '@/components/admin/RichTextEditor'
 import ImageUploader from '@/components/admin/ImageUploader'
+import DateTimePicker from '@/components/admin/DateTimePicker'
 import slugify from 'slugify'
 
 function generateSlug(title: string): string {
@@ -354,11 +355,9 @@ export default function NewPostPage({
             {/* 公開日時 */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">公開日時</label>
-              <input
-                type="datetime-local"
+              <DateTimePicker
                 value={publishedAt}
-                onChange={(e) => setPublishedAt(e.target.value)}
-                className={inputClass}
+                onChange={setPublishedAt}
               />
               <p className="mt-1 text-xs text-[#555]">未入力で公開すると投稿時刻が自動設定されます</p>
             </div>
