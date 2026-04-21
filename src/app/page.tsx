@@ -7,7 +7,7 @@ import BlogSection from '@/components/home/BlogSection'
 import ScrollAnimWrapper from '@/components/common/ScrollAnimWrapper'
 import Link from 'next/link'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 const services = [
   {
