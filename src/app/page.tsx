@@ -36,13 +36,14 @@ export default async function HomePage() {
     .order('published_at', { ascending: false })
     .limit(3)
 
-  const { data: blogPosts } = await adminSupabase
+  const { data: blogPosts, error: blogError } = await adminSupabase
     .from('posts')
     .select('id, title, slug, excerpt, thumbnail, published_at, type, category_id')
     .eq('type', 'blog')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
     .limit(3)
+  console.log('[DEBUG] blogPosts:', JSON.stringify(blogPosts), 'error:', JSON.stringify(blogError))
 
   // カテゴリ名をまとめて取得
   const allPosts = [...(newsPosts ?? []), ...(blogPosts ?? [])]
