@@ -29,17 +29,24 @@ export default function ScrollAnimWrapper({
     // ScrollTrigger を一括クリーンアップできる（React Strict Mode 対応）
     const ctx = gsap.context(() => {
       if (animation === 'stagger') {
-        const childEls = el.querySelectorAll(':scope > *')
-        gsap.from(childEls, {
-          opacity: 0,
-          y: 30,
-          duration: 0.7,
-          stagger: 0.15,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 85%',
-            once: true,
+        const childEls = Array.from(el.querySelectorAll(':scope > *'))
+        if (childEls.length === 0) return
+
+        // 初期状態をセット（immediateRender を使わず明示的に set する）
+        gsap.set(childEls, { opacity: 0, y: 30 })
+
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 90%',
+          once: true,
+          onEnter: () => {
+            gsap.to(childEls, {
+              opacity: 1,
+              y: 0,
+              duration: 0.7,
+              stagger: 0.15,
+              ease: 'power3.out',
+            })
           },
         })
         return
