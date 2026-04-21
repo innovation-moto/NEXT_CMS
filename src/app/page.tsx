@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabase/server'
 import { adminSupabase } from '@/lib/supabase/admin'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
@@ -29,9 +28,7 @@ const services = [
 ]
 
 export default async function HomePage() {
-  const supabase = await createClient()
-
-  const { data: newsPosts } = await supabase
+  const { data: newsPosts } = await adminSupabase
     .from('posts')
     .select('id, title, slug, excerpt, thumbnail, published_at, type, category_id')
     .eq('type', 'news')
@@ -39,7 +36,7 @@ export default async function HomePage() {
     .order('published_at', { ascending: false })
     .limit(3)
 
-  const { data: blogPosts } = await supabase
+  const { data: blogPosts } = await adminSupabase
     .from('posts')
     .select('id, title, slug, excerpt, thumbnail, published_at, type, category_id')
     .eq('type', 'blog')

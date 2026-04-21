@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { createStaticClient } from '@/lib/supabase/static'
+import { adminSupabase } from '@/lib/supabase/admin'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import RichTextRenderer from '@/components/common/RichTextRenderer'
@@ -52,7 +52,7 @@ export default async function NewsDetailPage({
 }: {
   params: { slug: string }
 }) {
-  const supabase = await createClient()
+  const supabase = createStaticClient()
 
   const { data: post } = await supabase
     .from('posts')
@@ -67,7 +67,6 @@ export default async function NewsDetailPage({
   // カテゴリ名を取得
   let categoryName: string | null = null
   if ((post as any).category_id) {
-    const { adminSupabase } = await import('@/lib/supabase/admin')
     const { data: cat } = await adminSupabase
       .from('categories')
       .select('name')
