@@ -4,7 +4,10 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Supabase auth クッキーの存在でログイン状態を確認
-  const isLoggedIn = request.cookies.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
+  // クッキー名は sb-{projectRef}-auth-token の形式
+  const isLoggedIn = request.cookies.getAll().some(
+    (c) => c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
+  )
 
   // /admin/login 以外の管理者ルートは認証必須
   if (!pathname.startsWith('/admin/login')) {
