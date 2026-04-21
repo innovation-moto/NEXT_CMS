@@ -12,15 +12,15 @@ export default async function AdminProtectedLayout({
 }: {
   children: React.ReactNode
 }) {
-  // クッキーの存在でログイン状態を確認
+  // クッキーの存在でログイン状態を確認（sb-{projectRef}-auth-token 形式）
   const cookieStore = await cookies()
-  const isLoggedIn = cookieStore.has('sb-ahukgtwnqscqdofsnwtx-auth-token')
+  const isLoggedIn = cookieStore.getAll().some(
+    (c) => c.name.startsWith('sb-') && c.name.endsWith('-auth-token')
+  )
 
   // 未ログイン → ログインページへ（このレイアウトは /admin/login に適用されないため無限ループなし）
   if (!isLoggedIn) {
-    // TODO: redirect はサーバーアクションのレスポンスをキャンセルしてしまう問題を調査中
-    // redirect('/admin/login')
-    return <>{children}</>
+    redirect('/admin/login')
   }
 
   // ログイン済み：ユーザー情報取得
