@@ -1,11 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
+import { adminSupabase } from '@/lib/supabase/admin'
 import Link from 'next/link'
 import { formatDate, getStatusLabel, getTypeLabel } from '@/lib/utils'
 
-export default async function AdminNotionPage() {
-  const supabase = await createClient()
+export const dynamic = 'force-dynamic'
 
-  const { data: posts, count } = await supabase
+export default async function AdminNotionPage() {
+  const { data: posts, count } = await adminSupabase
     .from('posts')
     .select('id, title, slug, type, status, notion_page_id, updated_at', { count: 'exact' })
     .not('notion_page_id', 'is', null)
