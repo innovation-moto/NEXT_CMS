@@ -1,18 +1,11 @@
 import { importNotionPage } from '@/lib/notion-import'
 
 interface Props {
-  searchParams: Promise<{ page_id?: string; secret?: string }>
+  searchParams: Promise<{ page_id?: string }>
 }
 
 export default async function NotionImportPage({ searchParams }: Props) {
-  const { page_id, secret } = await searchParams
-
-  const secret_env = process.env.NOTION_WEBHOOK_SECRET
-
-  // ── secret 検証 ──────────────────────────────────────────────────────────
-  if (!secret_env || secret !== secret_env) {
-    return <Layout><ErrorCard title="認証エラー" message="シークレットキーが一致しません。URLを確認してください。" /></Layout>
-  }
+  const { page_id } = await searchParams
 
   if (!page_id) {
     return <Layout><ErrorCard title="パラメータエラー" message="page_id が指定されていません。" /></Layout>

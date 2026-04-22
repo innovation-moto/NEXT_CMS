@@ -12,27 +12,16 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleImport(request: NextRequest) {
-  const secret = process.env.NOTION_WEBHOOK_SECRET
-  if (!secret) {
-    return NextResponse.json({ error: 'NOTION_WEBHOOK_SECRET is not configured' }, { status: 500 })
-  }
-
   let pageId: string | null = null
-  let providedSecret: string | null = null
 
   if (request.method === 'GET') {
     const { searchParams } = new URL(request.url)
     pageId = searchParams.get('page_id')
-    providedSecret = searchParams.get('secret')
   } else {
     const body = await request.json().catch(() => null)
     pageId = body?.page_id ?? null
-    providedSecret = body?.secret ?? request.headers.get('x-notion-secret')
   }
 
-  if (providedSecret !== secret) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
   if (!pageId) {
     return NextResponse.json({ error: 'page_id is required' }, { status: 400 })
   }
