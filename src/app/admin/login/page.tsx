@@ -1,11 +1,24 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useFormState, useFormStatus } from 'react-dom'
 import { loginWithOtp } from '@/lib/actions/auth'
 import Link from 'next/link'
 
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full rounded-lg bg-accent py-3 font-medium text-white transition-all hover:bg-accent/80 hover:shadow-[0_0_20px_rgba(229,62,62,0.3)] disabled:opacity-50"
+    >
+      {pending ? '送信中...' : '認証コードを送信'}
+    </button>
+  )
+}
+
 export default function AdminLoginPage() {
-  const [state, action, isPending] = useActionState(loginWithOtp, null)
+  const [state, action] = useFormState(loginWithOtp, null)
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4">
@@ -71,13 +84,7 @@ export default function AdminLoginPage() {
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-full rounded-lg bg-accent py-3 font-medium text-white transition-all hover:bg-accent/80 hover:shadow-[0_0_20px_rgba(229,62,62,0.3)] disabled:opacity-50"
-            >
-              {isPending ? '送信中...' : '認証コードを送信'}
-            </button>
+            <SubmitButton />
           </form>
 
           <div className="mt-6 text-center">

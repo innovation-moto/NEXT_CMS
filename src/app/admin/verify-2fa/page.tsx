@@ -1,11 +1,25 @@
 'use client'
 
-import { useActionState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
+import { useFormState, useFormStatus } from 'react-dom'
 import { verifyOtp } from '@/lib/actions/auth'
 import Link from 'next/link'
 
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full rounded-lg bg-accent py-3 font-medium text-white transition-all hover:bg-accent/80 hover:shadow-[0_0_20px_rgba(229,62,62,0.3)] disabled:opacity-50"
+    >
+      {pending ? '確認中...' : '確認する'}
+    </button>
+  )
+}
+
 export default function Verify2FAPage() {
-  const [state, action, isPending] = useActionState(verifyOtp, null)
+  const [state, action] = useFormState(verifyOtp, null)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // 各桁の入力フィールドを自動フォーカス
@@ -126,13 +140,7 @@ export default function Verify2FAPage() {
               <p className="mt-2 text-xs text-[#555]">有効期限: 10分間</p>
             </div>
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="w-full rounded-lg bg-accent py-3 font-medium text-white transition-all hover:bg-accent/80 hover:shadow-[0_0_20px_rgba(229,62,62,0.3)] disabled:opacity-50"
-            >
-              {isPending ? '確認中...' : '確認する'}
-            </button>
+            <SubmitButton />
           </form>
 
           <div className="mt-6 text-center">
