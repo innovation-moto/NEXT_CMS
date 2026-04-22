@@ -1,34 +1,25 @@
 'use client'
 
-import { useRef, useState } from 'react'
-import { useFormState, useFormStatus } from 'react-dom'
+import { useRef, useState, useTransition } from 'react'
 import { createPage } from '@/lib/actions/pages'
 import BlockEditor from '@/components/admin/BlockEditor'
 import type { Block } from '@/types/blocks'
 import slugify from 'slugify'
-
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus()
-  return (
-    <button type="submit" disabled={pending}
-      className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/80 disabled:opacity-50">
-      {pending ? '保存中...' : label}
-    </button>
-  )
-}
+import Link from 'next/link'
 
 export default function NewPagePage() {
-  const [state, action] = useFormState(createPage, null)
   const [title, setTitle] = useState('')
   const [slug, setSlug] = useState('')
   const [blocks, setBlocks] = useState<Block[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
   const blocksRef = useRef<Block[]>([])
-  const formRef = useRef<HTMLFormElement>(null)
 
   function handleTitleChange(v: string) {
     setTitle(v)
     if (!slug) {
-      setSlug(slugify(v, { lower: true, strict: true, locale: 'ja' }) || '')
+      const generated = slugify(v, { lower: true, strict: true, locale: 'ja' })
+      if (generated) setSlug(generated)
     }
   }
 
@@ -37,43 +28,53 @@ export default function NewPagePage() {
     setBlocks(b)
   }
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(status: 'draft' | 'published') {
+    setError(null)
+    const formData = new FormData()
+    formData.set('title', title || 'タイトルなし')
+    formData.set('slug', slug)
+    formData.set('status', status)
     formData.set('blocks', JSON.stringify(blocksRef.current))
-    return action(formData)
+
+    startTransition(async () => {
+      const result = await createPage(formData)
+      if (result?.error) setError(result.error)
+    })
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold text-white">新規固定ページ</h1>
+        <div>
+          <Link href="/admin/pages" className="text-xs text-[#555] hover:text-white">← 固定ページ一覧</Link>
+          <h1 className="mt-1 font-display text-2xl font-bold text-white">新規固定ページ</h1>
+        </div>
         <div className="flex gap-2">
-          <form action={handleSubmit} ref={formRef}>
-            <input type="hidden" name="title" value={title} />
-            <input type="hidden" name="slug" value={slug} />
-            <input type="hidden" name="status" value="draft" />
-            <input type="hidden" name="blocks" value={JSON.stringify(blocks)} />
-            <SubmitButton label="下書き保存" />
-          </form>
-          <form action={handleSubmit}>
-            <input type="hidden" name="title" value={title} />
-            <input type="hidden" name="slug" value={slug} />
-            <input type="hidden" name="status" value="published" />
-            <input type="hidden" name="blocks" value={JSON.stringify(blocks)} />
-            <SubmitButton label="公開する" />
-          </form>
+          <button
+            onClick={() => handleSubmit('draft')}
+            disabled={isPending}
+            className="rounded-lg border border-[#2a2a2a] px-4 py-2 text-sm text-[#888] hover:border-accent/40 hover:text-white disabled:opacity-50"
+          >
+            {isPending ? '保存中...' : '下書き保存'}
+          </button>
+          <button
+            onClick={() => handleSubmit('published')}
+            disabled={isPending}
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/80 disabled:opacity-50"
+          >
+            {isPending ? '保存中...' : '公開する'}
+          </button>
         </div>
       </div>
 
-      {state?.error && (
+      {error && (
         <div className="rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-400">
-          {state.error}
+          {error}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* メインコンテンツ */}
         <div className="space-y-4 lg:col-span-2">
-          {/* タイトル */}
           <input
             type="text"
             value={title}
@@ -81,12 +82,9 @@ export default function NewPagePage() {
             placeholder="タイトルを追加"
             className="w-full border-b border-[#2a2a2a] bg-transparent pb-2 text-3xl font-bold text-white placeholder-[#333] focus:border-accent focus:outline-none"
           />
-
-          {/* ブロックエディタ */}
           <BlockEditor initialBlocks={[]} onChange={handleBlocksChange} />
         </div>
 
-        {/* サイドバー */}
         <div className="space-y-4">
           <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-4 space-y-3">
             <h3 className="text-sm font-medium text-white">ページ設定</h3>
