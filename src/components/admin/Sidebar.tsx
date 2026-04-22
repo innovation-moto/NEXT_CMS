@@ -18,6 +18,7 @@ const navItems: NavItem[] = [
   { href: '/admin/pages', label: '固定ページ', icon: '📄' },
   { href: '/admin/media', label: 'メディア', icon: '🖼️' },
   { href: '/admin/contact', label: 'お問い合わせ', icon: '📧' },
+  { href: '/admin/notion', label: 'Notion連携', icon: '🔗' },
   { href: '/admin/users', label: 'ユーザー管理', icon: '👥', adminOnly: true },
 ]
 
