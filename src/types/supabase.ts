@@ -26,6 +26,7 @@ export type Database = {
           thumbnail: string | null
           author_id: string | null
           category_id: string | null
+          notion_page_id: string | null
           published_at: string | null
           created_at: string
           updated_at: string
@@ -41,6 +42,7 @@ export type Database = {
           thumbnail?: string | null
           author_id?: string | null
           category_id?: string | null
+          notion_page_id?: string | null
           published_at?: string | null
           created_at?: string
           updated_at?: string
@@ -56,6 +58,7 @@ export type Database = {
           thumbnail?: string | null
           author_id?: string | null
           category_id?: string | null
+          notion_page_id?: string | null
           published_at?: string | null
           updated_at?: string
         }
