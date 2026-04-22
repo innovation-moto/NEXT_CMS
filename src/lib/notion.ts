@@ -14,36 +14,41 @@ export function getNotionClient() {
 
 // ─── Notion画像 → Supabase Storage へ転送 ────────────────────────────────────
 
-async function transferImageToSupabase(notionUrl: string, originalFilename: string): Promise<string> {
-  const res = await fetch(notionUrl)
-  if (!res.ok) throw new Error(`画像取得失敗: ${res.status}`)
+async function transferImageToSupabase(notionUrl: string, originalFilename: string): Promise<string | null> {
+  try {
+    const res = await fetch(notionUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+    })
+    if (!res.ok) return null
 
-  const contentType = res.headers.get('content-type') ?? 'image/jpeg'
-  const buffer = Buffer.from(await res.arrayBuffer())
+    const contentType = res.headers.get('content-type') ?? 'image/jpeg'
+    const buffer = Buffer.from(await res.arrayBuffer())
 
-  const ext = originalFilename.split('.').pop() ?? 'jpg'
-  const filename = `notion/${crypto.randomUUID()}.${ext}`
+    const ext = originalFilename.split('.').pop()?.split('?')[0] ?? 'jpg'
+    const filename = `notion/${crypto.randomUUID()}.${ext}`
 
-  const { data, error } = await adminSupabase.storage
-    .from('media')
-    .upload(filename, buffer, { contentType, upsert: false })
+    const { data, error } = await adminSupabase.storage
+      .from('media')
+      .upload(filename, buffer, { contentType, upsert: false })
 
-  if (error) throw new Error(`Supabase Storage エラー: ${error.message}`)
+    if (error) return null
 
-  const { data: { publicUrl } } = adminSupabase.storage
-    .from('media')
-    .getPublicUrl(data.path)
+    const { data: { publicUrl } } = adminSupabase.storage
+      .from('media')
+      .getPublicUrl(data.path)
 
-  // media テーブルに記録
-  await adminSupabase.from('media').insert({
-    filename: originalFilename,
-    url: publicUrl,
-    size: buffer.byteLength,
-    mime_type: contentType,
-    uploaded_by: null,
-  }).throwOnError()
+    await adminSupabase.from('media').insert({
+      filename: originalFilename,
+      url: publicUrl,
+      size: buffer.byteLength,
+      mime_type: contentType,
+      uploaded_by: null,
+    })
 
-  return publicUrl
+    return publicUrl
+  } catch {
+    return null
+  }
 }
 
 // ─── Rich text → plain text ───────────────────────────────────────────────────

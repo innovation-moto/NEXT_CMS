@@ -1,5 +1,3 @@
-'use server'
-
 import { revalidatePath } from 'next/cache'
 import { fetchNotionPage } from '@/lib/notion'
 import { adminSupabase } from '@/lib/supabase/admin'

@@ -1,5 +1,8 @@
 import { importNotionPage } from '@/lib/notion-import'
 
+// キャッシュを無効化してリクエストごとに必ずインポート処理を実行する
+export const dynamic = 'force-dynamic'
+
 interface Props {
   searchParams: Promise<{ page_id?: string }>
 }
