@@ -5,11 +5,20 @@ import { formatDate, getStatusLabel, getTypeLabel } from '@/lib/utils'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminNotionPage() {
-  const { data: posts, count } = await adminSupabase
+  const { data: posts, count, error } = await adminSupabase
     .from('posts')
     .select('id, title, slug, type, status, notion_page_id, updated_at', { count: 'exact' })
     .not('notion_page_id', 'is', null)
     .order('updated_at', { ascending: false })
+
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-800/50 bg-red-900/20 p-6">
+        <p className="text-sm font-medium text-red-400">取得エラー: {error.message}</p>
+        <p className="mt-1 text-xs text-red-400/70">SUPABASE_SERVICE_ROLE_KEY がVercelに設定されているか確認してください。</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
