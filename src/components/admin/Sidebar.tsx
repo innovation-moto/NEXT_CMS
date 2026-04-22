@@ -15,6 +15,7 @@ const navItems: NavItem[] = [
   { href: '/admin', label: 'ダッシュボード', icon: '🏠' },
   { href: '/admin/posts?type=news', label: 'ニュース', icon: '📰' },
   { href: '/admin/posts?type=blog', label: 'ブログ', icon: '📝' },
+  { href: '/admin/pages', label: '固定ページ', icon: '📄' },
   { href: '/admin/media', label: 'メディア', icon: '🖼️' },
   { href: '/admin/contact', label: 'お問い合わせ', icon: '📧' },
   { href: '/admin/users', label: 'ユーザー管理', icon: '👥', adminOnly: true },
