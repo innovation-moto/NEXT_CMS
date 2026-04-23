@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { adminSupabase } from '@/lib/supabase/admin'
 import { createPostSchema } from '@/lib/validations/post'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -61,7 +62,7 @@ export async function createPost(formData: FormData) {
 }
 
 export async function updatePost(id: string, formData: FormData) {
-  const { supabase } = await requireAuth()
+  await requireAuth()
 
   const status = formData.get('status') as string
   const publishedAtRaw = (formData.get('published_at') as string) || null
@@ -90,7 +91,7 @@ export async function updatePost(id: string, formData: FormData) {
     return { error: parsed.error.flatten() }
   }
 
-  const { error } = await supabase
+  const { error } = await adminSupabase
     .from('posts')
     .update({ ...parsed.data, category_id: categoryId })
     .eq('id', id)
@@ -108,9 +109,9 @@ export async function updatePost(id: string, formData: FormData) {
 }
 
 export async function deletePost(id: string) {
-  const { supabase } = await requireAuth()
+  await requireAuth()
 
-  const { error } = await supabase.from('posts').delete().eq('id', id)
+  const { error } = await adminSupabase.from('posts').delete().eq('id', id)
   if (error) return { error: error.message }
 
   revalidatePath('/admin/posts')

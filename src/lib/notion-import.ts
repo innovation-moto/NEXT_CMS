@@ -14,7 +14,24 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
     return { success: false, error: err instanceof Error ? err.message : 'Notion取得エラー' }
   }
 
-  const slug = notionData.slug || pageId
+  const baseSlug = notionData.slug || pageId
+
+  // スラッグ重複を回避（-1, -2 ... を付与）
+  async function resolveSlug(base: string, excludeId?: string): Promise<string> {
+    let candidate = base
+    let suffix = 0
+    while (true) {
+      let query = adminSupabase
+        .from('posts')
+        .select('id')
+        .eq('slug', candidate)
+      if (excludeId) query = query.neq('id', excludeId)
+      const { data } = await query.maybeSingle()
+      if (!data) return candidate
+      suffix++
+      candidate = `${base}-${suffix}`
+    }
+  }
 
   const { data: existing } = await adminSupabase
     .from('posts')
@@ -23,6 +40,8 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
     .maybeSingle()
 
   if (existing) {
+    // 既存投稿の更新：自分自身のslugは除外して重複チェック
+    const slug = await resolveSlug(baseSlug, existing.id)
     const { data, error } = await adminSupabase
       .from('posts')
       .update({
@@ -45,6 +64,8 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
     revalidatePath('/'); revalidatePath('/news'); revalidatePath('/blog')
     return { success: true, action: 'updated', title: notionData.title, slug, type: notionData.type, status: notionData.status, postId: data.id }
   } else {
+    // 新規作成：重複しないslugを確定
+    const slug = await resolveSlug(baseSlug)
     const { data, error } = await adminSupabase
       .from('posts')
       .insert({
