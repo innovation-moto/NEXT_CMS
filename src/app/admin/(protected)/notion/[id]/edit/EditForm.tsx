@@ -276,7 +276,7 @@ export default function NotionEditForm({ post, initialCategories }: Props) {
             {/* 種別 */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">種別</label>
-              <select value={postType} onChange={(e) => setPostType(e.target.value)} className={inputClass}>
+              <select value={postType} onChange={(e) => setPostType(e.target.value as 'blog' | 'news')} className={inputClass}>
                 <option value="blog">ブログ</option>
                 <option value="news">ニュース</option>
               </select>
@@ -285,7 +285,7 @@ export default function NotionEditForm({ post, initialCategories }: Props) {
             {/* ステータス */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">ステータス</label>
-              <select value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass}>
+              <select value={status} onChange={(e) => setStatus(e.target.value as 'draft' | 'published' | 'archived')} className={inputClass}>
                 <option value="draft">下書き</option>
                 <option value="published">公開</option>
                 <option value="archived">アーカイブ</option>
