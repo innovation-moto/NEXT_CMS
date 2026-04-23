@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getNotionClient } from '@/lib/notion'
 import { importNotionPage } from '@/lib/notion-import'
 
 export const dynamic = 'force-dynamic'
@@ -12,25 +11,40 @@ export async function GET(request: NextRequest) {
   }
 
   const databaseId = process.env.NOTION_DATABASE_ID
+  const apiKey = process.env.NOTION_API_KEY
   if (!databaseId) {
     return NextResponse.json({ error: 'NOTION_DATABASE_ID is not set' }, { status: 500 })
   }
+  if (!apiKey) {
+    return NextResponse.json({ error: 'NOTION_API_KEY is not set' }, { status: 500 })
+  }
 
   try {
-    const notion = getNotionClient()
-
-    // 直近10分以内に更新・追加されたページのみ取得
+    // 直近10分以内に更新・追加されたページのみ取得（REST APIを直接使用）
     const since = new Date(Date.now() - 10 * 60 * 1000).toISOString()
 
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter: {
-        timestamp: 'last_edited_time',
-        last_edited_time: { after: since },
+    const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Notion-Version': '2022-06-28',
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        filter: {
+          timestamp: 'last_edited_time',
+          last_edited_time: { after: since },
+        },
+      }),
     })
 
-    const pageIds = response.results.map((page) => page.id)
+    if (!res.ok) {
+      const err = await res.text()
+      return NextResponse.json({ error: `Notion API error: ${err}` }, { status: 502 })
+    }
+
+    const data = await res.json()
+    const pageIds: string[] = data.results.map((page: { id: string }) => page.id)
 
     if (pageIds.length === 0) {
       return NextResponse.json({ synced: 0, message: '変更なし' })
