@@ -11,6 +11,14 @@ jobs:
     steps:
       - name: Sync Notion changes to CMS
         run: |
-          curl -s -f -X GET \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://next-cms-gilt.vercel.app/api/notion-sync
+            https://next-cms-gilt.vercel.app/api/notion-sync)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          echo "Response: $BODY"
+          echo "Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "Error: HTTP $HTTP_CODE"
+            exit 1
+          fi
