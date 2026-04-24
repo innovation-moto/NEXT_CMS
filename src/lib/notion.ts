@@ -181,6 +181,51 @@ function wrapListItems(lines: string[]): string[] {
   return result
 }
 
+// ─── Notionプロパティ値をシンプルな値に変換 ──────────────────────────────────
+
+const MAPPED_PROP_KEYS = new Set([
+  'タイトル', 'title', 'Title', 'Name',
+  'slug', 'Slug',
+  'excerpt', 'Excerpt', '抜粋',
+  'type', 'Type', '種別',
+  'status', 'Status', 'ステータス',
+  'アイキャッチ', 'thumbnail', 'Thumbnail', 'サムネイル',
+  'published_at', 'PublishedAt', '公開日', '日付',
+])
+
+function extractPropertyValue(prop: unknown): unknown {
+  if (!prop || typeof prop !== 'object') return null
+  const p = prop as Record<string, unknown>
+  switch (p.type) {
+    case 'title':
+    case 'rich_text':
+      return (p[p.type as string] as RichTextItemResponse[]).map((r) => r.plain_text).join('') || null
+    case 'select':
+      return (p.select as { name: string } | null)?.name ?? null
+    case 'multi_select':
+      return ((p.multi_select as { name: string }[]) ?? []).map((m) => m.name)
+    case 'date':
+      return (p.date as { start: string } | null)?.start ?? null
+    case 'checkbox':
+      return p.checkbox ?? null
+    case 'number':
+      return p.number ?? null
+    case 'url':
+      return p.url ?? null
+    case 'email':
+      return p.email ?? null
+    case 'phone_number':
+      return p.phone_number ?? null
+    case 'files': {
+      const files = (p.files as Array<{ type: string; file?: { url: string }; external?: { url: string }; name: string }>) ?? []
+      const urls = files.map((f) => (f.type === 'file' ? f.file?.url : f.external?.url)).filter(Boolean)
+      return urls.length ? urls : null
+    }
+    default:
+      return null
+  }
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export interface NotionPageData {
@@ -192,6 +237,7 @@ export interface NotionPageData {
   thumbnail: string | null
   published_at: string | null
   body: string
+  meta: Record<string, unknown>
 }
 
 export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
@@ -319,5 +365,15 @@ export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
 
   const body = wrapListItems(htmlParts).join('\n')
 
-  return { title, slug, excerpt, type, status, thumbnail, published_at, body }
+  // マッピング済み以外のプロパティをmetaとして収集
+  const meta: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(props)) {
+    if (MAPPED_PROP_KEYS.has(key)) continue
+    const extracted = extractPropertyValue(value)
+    if (extracted !== null && !(Array.isArray(extracted) && extracted.length === 0)) {
+      meta[key] = extracted
+    }
+  }
+
+  return { title, slug, excerpt, type, status, thumbnail, published_at, body, meta }
 }

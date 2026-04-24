@@ -53,6 +53,7 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
         status: notionData.status,
         thumbnail: notionData.thumbnail,
         published_at: notionData.published_at,
+        meta: Object.keys(notionData.meta).length ? notionData.meta : null,
         updated_at: new Date().toISOString(),
       })
       .eq('notion_page_id', pageId)
@@ -77,6 +78,7 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
         status: notionData.status,
         thumbnail: notionData.thumbnail,
         published_at: notionData.published_at,
+        meta: Object.keys(notionData.meta).length ? notionData.meta : null,
         notion_page_id: pageId,
       })
       .select('id')

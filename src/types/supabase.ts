@@ -28,6 +28,7 @@ export type Database = {
           category_id: string | null
           notion_page_id: string | null
           published_at: string | null
+          meta: Json | null
           created_at: string
           updated_at: string
         }
@@ -44,6 +45,7 @@ export type Database = {
           category_id?: string | null
           notion_page_id?: string | null
           published_at?: string | null
+          meta?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -60,6 +62,7 @@ export type Database = {
           category_id?: string | null
           notion_page_id?: string | null
           published_at?: string | null
+          meta?: Json | null
           updated_at?: string
         }
         Relationships: []
