@@ -187,23 +187,28 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
           {post.meta && typeof post.meta === 'object' && !Array.isArray(post.meta) && Object.keys(post.meta).length > 0 && (
             <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
               <h3 className="mb-4 text-sm font-medium text-white">Notionプロパティ</h3>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {Object.entries(post.meta as Record<string, unknown>).map(([key, value]) => (
-                  <div key={key}>
-                    <p className="mb-1.5 text-xs font-medium text-[#888888]">{key}</p>
-                    {Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && (value[0] as string).includes('/storage/v1/object/') ? (
-                      <div className="flex flex-wrap gap-2">
-                        {(value as string[]).map((url, i) => (
-                          <img key={i} src={url} alt={key} className="h-24 w-24 rounded-lg object-cover border border-[#2a2a2a]" />
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-[#aaa]">
-                        {Array.isArray(value) ? (value as unknown[]).join(', ') : String(value ?? '')}
-                      </p>
-                    )}
-                  </div>
-                ))}
+              <div className="space-y-5">
+                {Object.entries(post.meta as Record<string, unknown>).map(([key, value]) => {
+                  const isImages = Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && (value[0] as string).includes('/storage/v1/object/')
+                  return (
+                    <div key={key}>
+                      <p className="mb-2 text-xs font-medium text-[#888888]">{key}</p>
+                      {isImages ? (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                          {(value as string[]).map((url, i) => (
+                            <div key={i} className="relative aspect-video overflow-hidden rounded-lg border border-[#2a2a2a]">
+                              <img src={url} alt={`${key} ${i + 1}`} className="h-full w-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-[#aaa]">
+                          {Array.isArray(value) ? (value as unknown[]).join(', ') : String(value ?? '')}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
