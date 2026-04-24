@@ -1,4 +1,4 @@
-import { Client, isFullBlock, isFullPage } from '@notionhq/client'
+import { Client, isFullBlock } from '@notionhq/client'
 import type {
   BlockObjectResponse,
   PageObjectResponse,
@@ -244,12 +244,23 @@ export interface NotionPageData {
 }
 
 export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
-  const notion = getNotionClient()
+  // SDKを使わず直接REST APIでページプロパティを取得（Next.jsキャッシュ完全回避）
+  const pageApiRes = await fetch(
+    `https://api.notion.com/v1/pages/${pageId}`,
+    {
+      cache: 'no-store',
+      headers: {
+        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+        'Notion-Version': '2022-06-28',
+      },
+    }
+  )
+  const pageApiData = await pageApiRes.json()
+  if (pageApiData.object !== 'page') {
+    throw new Error(`Notion page fetch failed: ${pageApiData.message ?? pageApiData.code ?? pageApiRes.status}`)
+  }
 
-  const page = await notion.pages.retrieve({ page_id: pageId })
-  if (!isFullPage(page)) throw new Error('Not a full page object')
-
-  const props = page.properties as PageObjectResponse['properties']
+  const props = pageApiData.properties as PageObjectResponse['properties']
 
   function getProp<T>(key: string): T | undefined {
     return props[key] as T | undefined
