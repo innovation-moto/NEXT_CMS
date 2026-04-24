@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
 
   // ページプロパティ取得
   const pageRes = await fetch(`https://api.notion.com/v1/pages/${pageId}`, {
+    cache: 'no-store',
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Notion-Version': '2022-06-28',
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
 
   // ブロック取得
   const blocksRes = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`, {
+    cache: 'no-store',
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Notion-Version': '2022-06-28',
@@ -37,6 +39,7 @@ export async function GET(request: NextRequest) {
     blocks_status: blocksRes.status,
     blocks_count: blocksData.results?.length ?? 0,
     properties,
+    raw_properties: pageData.properties ?? null,
     blocks: blocksData.results?.map((b: any) => ({
       type: b.type,
       content: b[b.type],
