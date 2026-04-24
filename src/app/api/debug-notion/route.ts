@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { adminSupabase } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,16 +35,19 @@ export async function GET(request: NextRequest) {
     properties[key] = { type: v.type as string, value: v[v.type as string] }
   }
 
+  // Supabaseに保存されているmetaを確認
+  const { data: dbPost } = await adminSupabase
+    .from('posts')
+    .select('id, title, meta')
+    .eq('notion_page_id', pageId)
+    .maybeSingle()
+
   return NextResponse.json({
     page_status: pageRes.status,
     blocks_status: blocksRes.status,
     blocks_count: blocksData.results?.length ?? 0,
     properties,
-    raw_properties: pageData.properties ?? null,
-    blocks: blocksData.results?.map((b: any) => ({
-      type: b.type,
-      content: b[b.type],
-    })),
+    db_post: dbPost ? { id: dbPost.id, title: dbPost.title, meta: dbPost.meta } : null,
     page_error: pageData.code ?? null,
     blocks_error: blocksData.code ?? null,
   })
