@@ -3,9 +3,7 @@
 import { useState } from 'react'
 import { updatePost } from '@/lib/actions/posts'
 import { createCategory, deleteCategory, type Category } from '@/lib/actions/categories'
-import RichTextEditor from '@/components/admin/RichTextEditor'
 import DateTimePicker from '@/components/admin/DateTimePicker'
-import ImageUploader from '@/components/admin/ImageUploader'
 import ReimportButton from './ReimportButton'
 import type { Post, Section } from '@/types/supabase'
 import Link from 'next/link'
@@ -17,20 +15,14 @@ interface Props {
 }
 
 export default function NotionEditForm({ post, initialCategories, sections }: Props) {
-  const [title, setTitle] = useState(post.title)
   const [slug, setSlug] = useState(post.slug)
   const [postType, setPostType] = useState<string>(post.type)
   const [status, setStatus] = useState(post.status)
-  const [excerpt, setExcerpt] = useState(post.excerpt ?? '')
-  const [body, setBody] = useState(post.body ?? '')
-  const [thumbnail, setThumbnail] = useState(post.thumbnail ?? '')
   const [notionPageId] = useState(post.notion_page_id ?? '')
 
   const defaultDate = (() => {
     const now = new Date()
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
-      .toISOString()
-      .slice(0, 16)
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
   })()
   const [publishedAt, setPublishedAt] = useState(
     post.published_at ? post.published_at.slice(0, 16) : defaultDate
@@ -45,7 +37,6 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
   const [showManageCategories, setShowManageCategories] = useState(false)
   const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null)
 
-  const [errors, setErrors] = useState<Record<string, string[]>>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [savedMessage, setSavedMessage] = useState(false)
@@ -79,27 +70,21 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
-    setErrors({})
 
     const formData = new FormData()
-    formData.set('title', title)
+    formData.set('title', post.title)
     formData.set('slug', slug)
     formData.set('type', postType)
     formData.set('status', status)
-    formData.set('excerpt', excerpt)
-    formData.set('body', body)
-    formData.set('thumbnail', thumbnail)
+    formData.set('excerpt', post.excerpt ?? '')
+    formData.set('body', post.body ?? '')
+    formData.set('thumbnail', post.thumbnail ?? '')
     formData.set('category_id', categoryId)
     formData.set('published_at', status === 'published' && publishedAt ? new Date(publishedAt).toISOString() : '')
 
     const result = await updatePost(post.id, formData)
     if (result?.error) {
-      setErrors(result.error.fieldErrors ?? {})
-      setFormError(
-        result.error.formErrors?.length
-          ? result.error.formErrors[0]
-          : '入力内容にエラーがあります。各項目を確認してください。'
-      )
+      setFormError('保存できませんでした。')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       setFormError(null)
@@ -120,7 +105,8 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
           <div className="flex items-center gap-2">
             <Link href="/admin/notion" className="text-xs text-[#555] hover:text-[#888]">← Notion連携</Link>
           </div>
-          <h1 className="mt-1 font-display text-2xl font-bold text-white">Notion記事を編集</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold text-white">Notion記事を表示</h1>
+          <p className="mt-1 text-xs text-[#555]">コンテンツはNotionと同期。設定のみ編集できます。</p>
         </div>
         <div className="flex gap-2">
           <a
@@ -136,7 +122,7 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
             disabled={submitting}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/80 disabled:opacity-50"
           >
-            {submitting ? '保存中...' : '保存する'}
+            {submitting ? '保存中...' : '設定を保存'}
           </button>
         </div>
       </div>
@@ -151,39 +137,42 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
       {formError && (
         <div className="flex items-start gap-3 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3">
           <span className="mt-0.5 text-red-400">⚠️</span>
-          <div>
-            <p className="text-sm font-medium text-red-400">保存できませんでした</p>
-            <p className="mt-0.5 text-xs text-red-400/80">{formError}</p>
-          </div>
+          <p className="text-sm font-medium text-red-400">{formError}</p>
           <button type="button" onClick={() => setFormError(null)} className="ml-auto text-red-400/60 hover:text-red-400">✕</button>
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Main */}
+        {/* Main — 読み取り専用コンテンツ */}
         <div className="space-y-5 lg:col-span-2">
+          {/* タイトル */}
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#888888]">タイトル *</label>
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
-            {errors.title && <p className="mt-1 text-xs text-red-400">{errors.title[0]}</p>}
+            <p className="mb-1.5 text-xs font-medium text-[#888888]">タイトル</p>
+            <p className="text-lg font-bold text-white">{post.title}</p>
           </div>
 
+          {/* 抜粋 */}
+          {post.excerpt && (
+            <div>
+              <p className="mb-1.5 text-xs font-medium text-[#888888]">抜粋</p>
+              <p className="text-sm text-[#aaa]">{post.excerpt}</p>
+            </div>
+          )}
+
+          {/* 本文 */}
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#888888]">スラッグ</label>
-            <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)} className={inputClass} />
-            {errors.slug && <p className="mt-1 text-xs text-red-400">{errors.slug[0]}</p>}
+            <p className="mb-1.5 text-xs font-medium text-[#888888]">本文</p>
+            {post.body ? (
+              <div
+                className="prose prose-invert prose-sm max-w-none rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-4 text-[#ccc]"
+                dangerouslySetInnerHTML={{ __html: post.body }}
+              />
+            ) : (
+              <p className="text-sm text-[#555]">本文なし</p>
+            )}
           </div>
 
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#888888]">抜粋</label>
-            <textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} rows={3} className={`${inputClass} resize-none`} />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-[#888888]">本文</label>
-            <RichTextEditor content={body} onChange={setBody} />
-          </div>
-
+          {/* Notionプロパティ */}
           {post.meta && typeof post.meta === 'object' && !Array.isArray(post.meta) && Object.keys(post.meta).length > 0 && (
             <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
               <h3 className="mb-4 text-sm font-medium text-white">Notionプロパティ</h3>
@@ -214,9 +203,9 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
           )}
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar — 編集可能な設定 */}
         <div className="space-y-5">
-          {/* Notion情報 */}
+          {/* Notion連携 */}
           <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5 space-y-3">
             <h3 className="text-sm font-medium text-white">🔗 Notion連携</h3>
             <div>
@@ -231,19 +220,26 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
             >
               Notionで開く ↗
             </a>
-            {notionPageId && (
-              <ReimportButton pageId={notionPageId} postId={post.id} />
-            )}
+            {notionPageId && <ReimportButton pageId={notionPageId} postId={post.id} />}
           </div>
 
-          <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
-            <ImageUploader value={thumbnail} onChange={setThumbnail} />
-          </div>
+          {/* サムネイル（読み取り専用） */}
+          {post.thumbnail && (
+            <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
+              <p className="mb-2 text-xs font-medium text-[#888888]">サムネイル</p>
+              <img src={post.thumbnail} alt="thumbnail" className="w-full rounded-lg object-cover" />
+            </div>
+          )}
 
+          {/* 投稿設定（編集可能） */}
           <div className="space-y-4 rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
             <h3 className="text-sm font-medium text-white">投稿設定</h3>
 
-            {/* カテゴリ */}
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-[#888888]">スラッグ</label>
+              <input type="text" value={slug} onChange={(e) => setSlug(e.target.value)} className={inputClass} />
+            </div>
+
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">カテゴリ</label>
               <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={inputClass}>
@@ -266,12 +262,9 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
               ) : (
                 <div className="mt-2 space-y-2">
                   <input
-                    type="text"
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory() } }}
-                    placeholder="カテゴリ名を入力..."
-                    autoFocus
+                    placeholder="カテゴリ名を入力..." autoFocus
                     className="w-full rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-xs text-white placeholder-[#555] focus:border-accent focus:outline-none"
                   />
                   {categoryError && <p className="text-xs text-red-400">{categoryError}</p>}
@@ -303,7 +296,6 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
               )}
             </div>
 
-            {/* 種別 */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">種別</label>
               <select value={postType} onChange={(e) => setPostType(e.target.value)} className={inputClass}>
@@ -314,7 +306,6 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
               </select>
             </div>
 
-            {/* ステータス */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">ステータス</label>
               <select value={status} onChange={(e) => setStatus(e.target.value as 'draft' | 'published' | 'archived')} className={inputClass}>
@@ -324,14 +315,12 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
               </select>
             </div>
 
-            {/* 公開日時 */}
             <div>
               <label className="mb-1.5 block text-xs font-medium text-[#888888]">公開日時</label>
               <DateTimePicker value={publishedAt} onChange={setPublishedAt} />
               <p className="mt-1 text-xs text-[#555]">未入力で公開すると保存時刻が自動設定されます</p>
             </div>
           </div>
-
         </div>
       </div>
     </form>
