@@ -3,7 +3,7 @@ import { fetchNotionPage } from '@/lib/notion'
 import { adminSupabase } from '@/lib/supabase/admin'
 
 export type ImportResult =
-  | { success: true; action: 'created' | 'updated'; title: string; slug: string; type: string; status: string; postId: string }
+  | { success: true; action: 'created' | 'updated'; title: string; slug: string; type: string; status: string; postId: string; metaKeys: string[] }
   | { success: false; error: string }
 
 export async function importNotionPage(pageId: string): Promise<ImportResult> {
@@ -63,7 +63,7 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
     if (error) return { success: false, error: error.message }
 
     revalidatePath('/'); revalidatePath('/news'); revalidatePath('/blog')
-    return { success: true, action: 'updated', title: notionData.title, slug, type: notionData.type, status: notionData.status, postId: data.id }
+    return { success: true, action: 'updated', title: notionData.title, slug, type: notionData.type, status: notionData.status, postId: data.id, metaKeys: Object.keys(notionData.meta) }
   } else {
     // 新規作成：重複しないslugを確定
     const slug = await resolveSlug(baseSlug)
@@ -87,6 +87,6 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
     if (error) return { success: false, error: error.message }
 
     revalidatePath('/'); revalidatePath('/news'); revalidatePath('/blog')
-    return { success: true, action: 'created', title: notionData.title, slug, type: notionData.type, status: notionData.status, postId: data.id }
+    return { success: true, action: 'created', title: notionData.title, slug, type: notionData.type, status: notionData.status, postId: data.id, metaKeys: Object.keys(notionData.meta) }
   }
 }

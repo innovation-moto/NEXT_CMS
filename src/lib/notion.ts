@@ -9,7 +9,10 @@ import { adminSupabase } from '@/lib/supabase/admin'
 export function getNotionClient() {
   const apiKey = process.env.NOTION_API_KEY
   if (!apiKey) throw new Error('NOTION_API_KEY is not set')
-  return new Client({ auth: apiKey })
+  return new Client({
+    auth: apiKey,
+    fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }),
+  })
 }
 
 // ─── Notion画像 → Supabase Storage へ転送 ────────────────────────────────────
