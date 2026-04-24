@@ -17,6 +17,7 @@ export function getNotionClient() {
 async function transferImageToSupabase(notionUrl: string, originalFilename: string): Promise<string | null> {
   try {
     const res = await fetch(notionUrl, {
+      cache: 'no-store',
       headers: { 'User-Agent': 'Mozilla/5.0' },
     })
     if (!res.ok) return null
@@ -282,10 +283,11 @@ export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
     ? new Date(publishedAtProp.date.start).toISOString()
     : null
 
-  // 本文ブロック取得（REST APIを直接使用）
+  // 本文ブロック取得（REST APIを直接使用、Next.jsキャッシュ無効）
   const blocksRes = await fetch(
     `https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`,
     {
+      cache: 'no-store',
       headers: {
         Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
         'Notion-Version': '2022-06-28',
