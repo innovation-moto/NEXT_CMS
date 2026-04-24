@@ -1,5 +1,6 @@
 import { adminSupabase } from '@/lib/supabase/admin'
 import { getCategories } from '@/lib/actions/categories'
+import { getSections } from '@/lib/actions/sections'
 import { notFound } from 'next/navigation'
 import NotionEditForm from './EditForm'
 import type { Post } from '@/types/supabase'
@@ -17,7 +18,10 @@ export default async function NotionEditPage({ params }: { params: Promise<{ id:
 
   if (!post) notFound()
 
-  const categories = await getCategories(post.type)
+  const [categories, sections] = await Promise.all([
+    getCategories(post.type),
+    getSections(),
+  ])
 
-  return <NotionEditForm post={post as Post} initialCategories={categories} />
+  return <NotionEditForm post={post as Post} initialCategories={categories} sections={sections} />
 }

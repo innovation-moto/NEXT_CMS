@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { formatDate, getStatusLabel, getTypeLabel } from '@/lib/utils'
+import { formatDate, getStatusLabel } from '@/lib/utils'
 import DeletePostButton from './DeletePostButton'
+import { getSections } from '@/lib/actions/sections'
 
 export default async function AdminPostsPage({
   searchParams,
@@ -25,15 +26,12 @@ export default async function AdminPostsPage({
   if (type !== 'all') query = query.eq('type', type)
   if (search) query = query.ilike('title', `%${search}%`)
 
-  const { data: posts, count } = await query
+  const [{ data: posts, count }, sections] = await Promise.all([query, getSections()])
   const totalPages = Math.ceil((count ?? 0) / perPage)
 
-  const pageTitle = type === 'news' ? 'ニュース' : type === 'blog' ? 'ブログ' : '投稿管理'
-  const newPostHref = type === 'news'
-    ? '/admin/posts/new?type=news'
-    : type === 'blog'
-    ? '/admin/posts/new?type=blog'
-    : '/admin/posts/new'
+  const matchedSection = sections.find((s) => s.name === type)
+  const pageTitle = matchedSection ? matchedSection.label : type !== 'all' ? type : '投稿管理'
+  const newPostHref = type !== 'all' ? `/admin/posts/new?type=${type}` : '/admin/posts/new'
 
   return (
     <div className="space-y-6">
@@ -92,7 +90,9 @@ export default async function AdminPostsPage({
                     <p className="text-xs text-[#888888]">//{post.type}/{post.slug}</p>
                   </td>
                   <td className="px-5 py-3">
-                    <span className="text-xs text-[#888888]">{getTypeLabel(post.type)}</span>
+                    <span className="text-xs text-[#888888]">
+                      {sections.find((s) => s.name === post.type)?.label ?? post.type}
+                    </span>
                   </td>
                   <td className="px-5 py-3">
                     <span

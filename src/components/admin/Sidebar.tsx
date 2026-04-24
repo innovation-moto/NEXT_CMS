@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import type { Section } from '@/types/supabase'
 
 interface NavItem {
   href: string
@@ -11,33 +12,47 @@ interface NavItem {
   adminOnly?: boolean
 }
 
-const navItems: NavItem[] = [
+const staticTopItems: NavItem[] = [
   { href: '/admin', label: 'ダッシュボード', icon: '🏠' },
-  { href: '/admin/posts?type=news', label: 'ニュース', icon: '📰' },
-  { href: '/admin/posts?type=blog', label: 'ブログ', icon: '📝' },
+]
+
+const staticBottomItems: NavItem[] = [
   { href: '/admin/pages', label: '固定ページ', icon: '📄' },
   { href: '/admin/media', label: 'メディア', icon: '🖼️' },
   { href: '/admin/contact', label: 'お問い合わせ', icon: '📧' },
   { href: '/admin/notion', label: 'Notion連携', icon: '🔗' },
   { href: '/admin/users', label: 'ユーザー管理', icon: '👥', adminOnly: true },
+  { href: '/admin/sections', label: 'セクション管理', icon: '📂', adminOnly: true },
 ]
 
 interface Props {
   userRole: string
+  sections: Section[]
 }
 
-export default function AdminSidebar({ userRole }: Props) {
+export default function AdminSidebar({ userRole, sections }: Props) {
   const pathname = usePathname()
   const [currentType, setCurrentType] = useState<string | null>(null)
   const isAdmin = userRole === 'admin'
 
-  // useSearchParams の代わりに useEffect で読み取り（Suspense不要にするため）
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     setCurrentType(params.get('type'))
   }, [pathname])
 
-  const visibleItems = navItems.filter((item) => !item.adminOnly || isAdmin)
+  const sectionItems: NavItem[] = sections.map((s) => ({
+    href: `/admin/posts?type=${s.name}`,
+    label: s.label,
+    icon: s.icon,
+  }))
+
+  const allItems: NavItem[] = [
+    ...staticTopItems,
+    ...sectionItems,
+    ...staticBottomItems,
+  ]
+
+  const visibleItems = allItems.filter((item) => !item.adminOnly || isAdmin)
 
   function isActive(itemHref: string): boolean {
     const [itemPath, itemQuery] = itemHref.split('?')
@@ -45,7 +60,6 @@ export default function AdminSidebar({ userRole }: Props) {
 
     if (!pathname.startsWith(itemPath)) return false
 
-    // クエリパラメータがある場合はそれも一致確認
     if (itemQuery) {
       const [key, value] = itemQuery.split('=')
       if (key === 'type') return currentType === value

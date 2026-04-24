@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/Sidebar'
 import AdminTopBar from '@/components/admin/TopBar'
+import { getSections } from '@/lib/actions/sections'
 
 // このレイアウトは /admin/login 以外の全管理画面に適用される
 // /admin/login はこのレイアウトの外（親の layout.tsx のみ）なので無限ループにならない
@@ -50,9 +51,11 @@ export default async function AdminProtectedLayout({
     // エラーでもレイアウトは必ず表示
   }
 
+  const sections = await getSections()
+
   return (
     <div className="flex h-screen bg-[#0d0d14] text-white">
-      <AdminSidebar userRole={userRole} />
+      <AdminSidebar userRole={userRole} sections={sections} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminTopBar
           user={{

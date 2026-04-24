@@ -186,7 +186,7 @@ export interface NotionPageData {
   title: string
   slug: string
   excerpt: string | null
-  type: 'blog' | 'news'
+  type: string
   status: 'draft' | 'published' | 'archived'
   thumbnail: string | null
   published_at: string | null
@@ -231,8 +231,7 @@ export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
     getProp<{ select: { name: string } | null }>('type') ??
     getProp<{ select: { name: string } | null }>('Type') ??
     getProp<{ select: { name: string } | null }>('種別')
-  const typeRaw = typeProp?.select?.name?.toLowerCase() ?? 'blog'
-  const type: 'blog' | 'news' = typeRaw === 'news' ? 'news' : 'blog'
+  const type = typeProp?.select?.name?.toLowerCase() || 'blog'
 
   // status
   const statusProp =

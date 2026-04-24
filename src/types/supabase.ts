@@ -21,7 +21,7 @@ export type Database = {
           slug: string
           body: string | null
           excerpt: string | null
-          type: 'blog' | 'news'
+          type: string
           status: 'draft' | 'published' | 'archived'
           thumbnail: string | null
           author_id: string | null
@@ -37,7 +37,7 @@ export type Database = {
           slug: string
           body?: string | null
           excerpt?: string | null
-          type?: 'blog' | 'news'
+          type?: string
           status?: 'draft' | 'published' | 'archived'
           thumbnail?: string | null
           author_id?: string | null
@@ -53,7 +53,7 @@ export type Database = {
           slug?: string
           body?: string | null
           excerpt?: string | null
-          type?: 'blog' | 'news'
+          type?: string
           status?: 'draft' | 'published' | 'archived'
           thumbnail?: string | null
           author_id?: string | null
@@ -69,21 +69,47 @@ export type Database = {
           id: string
           name: string
           slug: string
-          type: 'blog' | 'news'
+          type: string
           sort_order: number
         }
         Insert: {
           id?: string
           name: string
           slug: string
-          type?: 'blog' | 'news'
+          type?: string
           sort_order?: number
         }
         Update: {
           id?: string
           name?: string
           slug?: string
-          type?: 'blog' | 'news'
+          type?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      sections: {
+        Row: {
+          id: string
+          name: string
+          label: string
+          icon: string
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          label: string
+          icon?: string
+          sort_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          label?: string
+          icon?: string
           sort_order?: number
         }
         Relationships: []
@@ -194,3 +220,4 @@ export type CategoryInsert = Database['public']['Tables']['categories']['Insert'
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ContactMessage = Database['public']['Tables']['contact_messages']['Row']
 export type Media = Database['public']['Tables']['media']['Row']
+export type Section = Database['public']['Tables']['sections']['Row']
