@@ -171,6 +171,30 @@ export default function EditPostForm({ post, initialCategories, sections }: Prop
             <label className="mb-1.5 block text-xs font-medium text-[#888888]">本文</label>
             <RichTextEditor content={body} onChange={setBody} />
           </div>
+
+          {post.meta && typeof post.meta === 'object' && !Array.isArray(post.meta) && Object.keys(post.meta).length > 0 && (
+            <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
+              <h3 className="mb-4 text-sm font-medium text-white">Notionプロパティ</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {Object.entries(post.meta as Record<string, unknown>).map(([key, value]) => (
+                  <div key={key}>
+                    <p className="mb-1.5 text-xs font-medium text-[#888888]">{key}</p>
+                    {Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && (value[0] as string).includes('/storage/v1/object/') ? (
+                      <div className="flex flex-wrap gap-2">
+                        {(value as string[]).map((url, i) => (
+                          <img key={i} src={url} alt={key} className="h-24 w-24 rounded-lg object-cover border border-[#2a2a2a]" />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-[#aaa]">
+                        {Array.isArray(value) ? (value as unknown[]).join(', ') : String(value ?? '')}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="space-y-5">
@@ -263,29 +287,6 @@ export default function EditPostForm({ post, initialCategories, sections }: Prop
             </div>
           </div>
 
-          {post.meta && typeof post.meta === 'object' && !Array.isArray(post.meta) && Object.keys(post.meta).length > 0 && (
-            <div className="rounded-xl border border-[#2a2a2a] bg-[#111118] p-5">
-              <h3 className="mb-3 text-sm font-medium text-white">Notionプロパティ</h3>
-              <div className="space-y-2">
-                {Object.entries(post.meta as Record<string, unknown>).map(([key, value]) => (
-                  <div key={key}>
-                    <p className="text-xs text-[#555]">{key}</p>
-                    {Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && (value[0] as string).includes('/storage/v1/object/') ? (
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {(value as string[]).map((url, i) => (
-                          <img key={i} src={url} alt={key} className="h-16 w-16 rounded object-cover border border-[#2a2a2a]" />
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mt-0.5 text-xs text-[#aaa] break-all">
-                        {Array.isArray(value) ? (value as unknown[]).join(', ') : String(value ?? '')}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </form>
