@@ -1,15 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { formatDate, getStatusLabel } from '@/lib/utils'
 import DeletePostButton from './DeletePostButton'
 import { getSections } from '@/lib/actions/sections'
+import { adminSupabase } from '@/lib/supabase/admin'
 
 export default async function AdminPostsPage({
   searchParams,
 }: {
   searchParams: { type?: string; page?: string; search?: string }
 }) {
-  const supabase = await createClient()
+  const supabase = adminSupabase
   const page = parseInt(searchParams.page ?? '1')
   const perPage = 20
   const type = searchParams.type ?? 'all'
