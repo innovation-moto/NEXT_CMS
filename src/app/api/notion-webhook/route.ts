@@ -1,19 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createHmac, timingSafeEqual } from 'crypto'
 import { importNotionPage } from '@/lib/notion-import'
 
 export const dynamic = 'force-dynamic'
 
-function verifySignature(rawBody: string, signature: string, secret: string): boolean {
-  try {
-    const hmac = createHmac('sha256', secret)
-    hmac.update(rawBody)
-    const computed = `sha256=${hmac.digest('hex')}`
-    if (computed.length !== signature.length) return false
-    return timingSafeEqual(Buffer.from(computed), Buffer.from(signature))
-  } catch {
-    return false
-  }
+function extractPageId(payload: Record<string, unknown>): string | null {
+  // Notion Automations形式: { data: { id: "..." } }
+  const data = payload.data as Record<string, unknown> | undefined
+  if (typeof data?.id === 'string') return data.id
+
+  // Notion APIイベント形式: { entity: { type: "page", id: "..." } }
+  const entity = payload.entity as Record<string, unknown> | undefined
+  if (entity?.type === 'page' && typeof entity?.id === 'string') return entity.id
+
+  // ルートにidがある場合: { id: "...", object: "page" }
+  if (payload.object === 'page' && typeof payload.id === 'string') return payload.id
+
+  return null
+}
+
+export async function GET() {
+  return NextResponse.json({ ok: true })
 }
 
 export async function POST(request: NextRequest) {
@@ -26,27 +32,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  // Notionがwebhook登録時に送るURLチャレンジに応答
+  // Notion URLチャレンジ応答
   if (payload.verification_token) {
     return NextResponse.json({ challenge: payload.verification_token })
   }
 
-  // 署名検証
-  const secret = process.env.NOTION_WEBHOOK_SECRET
-  if (secret) {
-    const signature = request.headers.get('x-notion-signature') ?? ''
-    if (!verifySignature(rawBody, signature, secret)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-    }
+  const pageId = extractPageId(payload)
+  if (!pageId) {
+    return NextResponse.json({ message: 'page_id not found', payload }, { status: 200 })
   }
 
-  // ページ以外のイベントはスキップ
-  const entity = payload.entity as { type?: string; id?: string } | undefined
-  if (entity?.type !== 'page' || !entity?.id) {
-    return NextResponse.json({ message: 'skipped' })
-  }
-
-  const result = await importNotionPage(entity.id)
+  const result = await importNotionPage(pageId)
   if (!result.success) {
     return NextResponse.json({ error: result.error }, { status: 500 })
   }
