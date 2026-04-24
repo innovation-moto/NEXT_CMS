@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Section } from '@/types/supabase'
@@ -98,9 +97,8 @@ export default function AdminSidebar({ userRole, sections }: Props) {
                 }`}
               >
                 {item.icon?.startsWith('http') ? (
-                  <span className="relative h-5 w-5 flex-shrink-0 overflow-hidden rounded">
-                    <Image src={item.icon} alt="" fill className="object-cover" />
-                  </span>
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.icon} alt="" className="h-5 w-5 flex-shrink-0 rounded object-cover" />
                 ) : (
                   <span className="w-5 text-center text-base">{item.icon}</span>
                 )}

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { createSection, deleteSection } from '@/lib/actions/sections'
 import type { Section } from '@/types/supabase'
@@ -46,9 +45,8 @@ function IconUploader({ value, onChange }: { value: string; onChange: (url: stri
       <label className="mb-1.5 block text-xs font-medium text-[#888888]">アイコン画像</label>
       <div className="flex items-center gap-3">
         {value ? (
-          <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-[#2a2a2a]">
-            <Image src={value} alt="icon" fill className="object-cover" />
-          </div>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt="icon" className="h-12 w-12 rounded-lg border border-[#2a2a2a] object-cover" />
         ) : (
           <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-[#2a2a2a] bg-[#0a0a0a] text-[#555]">
             <span className="text-xl">📷</span>
@@ -138,9 +136,8 @@ export default function SectionsClient({ initialSections }: Props) {
               <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
                 <div className="flex items-center gap-3">
                   {s.icon?.startsWith('http') ? (
-                    <div className="relative h-8 w-8 overflow-hidden rounded-md border border-[#2a2a2a]">
-                      <Image src={s.icon} alt={s.label} fill className="object-cover" />
-                    </div>
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.icon} alt={s.label} className="h-8 w-8 rounded-md border border-[#2a2a2a] object-cover" />
                   ) : (
                     <span className="text-xl">{s.icon || '📄'}</span>
                   )}
