@@ -20,8 +20,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 直近10分以内に更新・追加されたページのみ取得（REST APIを直接使用）
-    const since = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+    // 直近2時間以内に更新・追加されたページを取得（GitHub Actionsのcron遅延に対応）
+    const since = new Date(Date.now() - 120 * 60 * 1000).toISOString()
 
     const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
       method: 'POST',
