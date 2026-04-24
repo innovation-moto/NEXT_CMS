@@ -26,10 +26,17 @@ export async function GET(request: NextRequest) {
   })
   const blocksData = await blocksRes.json()
 
+  const properties: Record<string, { type: string; value: unknown }> = {}
+  for (const [key, val] of Object.entries(pageData.properties ?? {})) {
+    const v = val as Record<string, unknown>
+    properties[key] = { type: v.type as string, value: v[v.type as string] }
+  }
+
   return NextResponse.json({
     page_status: pageRes.status,
     blocks_status: blocksRes.status,
     blocks_count: blocksData.results?.length ?? 0,
+    properties,
     blocks: blocksData.results?.map((b: any) => ({
       type: b.type,
       content: b[b.type],
