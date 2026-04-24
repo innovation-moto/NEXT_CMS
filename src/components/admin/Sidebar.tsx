@@ -22,7 +22,7 @@ const staticBottomItems: NavItem[] = [
   { href: '/admin/contact', label: 'お問い合わせ', icon: '📧' },
   { href: '/admin/notion', label: 'Notion連携', icon: '🔗' },
   { href: '/admin/users', label: 'ユーザー管理', icon: '👥', adminOnly: true },
-  { href: '/admin/sections', label: 'セクション管理', icon: '📂', adminOnly: true },
+  { href: '/admin/sections', label: 'セクション管理', icon: '📂' },
 ]
 
 interface Props {
