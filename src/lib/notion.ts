@@ -221,8 +221,10 @@ function extractPropertyValue(prop: unknown): unknown {
       return p.phone_number ?? null
     case 'files': {
       const files = (p.files as Array<{ type: string; file?: { url: string }; external?: { url: string }; name: string }>) ?? []
-      const urls = files.map((f) => (f.type === 'file' ? f.file?.url : f.external?.url)).filter(Boolean)
-      return urls.length ? urls : null
+      const items = files
+        .map((f) => ({ url: f.type === 'file' ? f.file?.url : f.external?.url, name: f.name }))
+        .filter((f): f is { url: string; name: string } => typeof f.url === 'string')
+      return items.length ? { __notion_files: items } : null
     }
     default:
       return null
@@ -386,6 +388,25 @@ export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
     const extracted = extractPropertyValue(value)
     if (extracted !== null && !(Array.isArray(extracted) && extracted.length === 0)) {
       meta[key] = extracted
+    }
+  }
+
+  // files型のプロパティ画像をSupabase Storageへ転送して永続URLに変換
+  for (const [key, value] of Object.entries(meta)) {
+    if (
+      value &&
+      typeof value === 'object' &&
+      !Array.isArray(value) &&
+      '__notion_files' in (value as object)
+    ) {
+      const { __notion_files } = value as { __notion_files: Array<{ url: string; name: string }> }
+      const transferred: string[] = []
+      for (const f of __notion_files) {
+        const supaUrl = await transferImageToSupabase(f.url, f.name)
+        if (supaUrl) transferred.push(supaUrl)
+      }
+      meta[key] = transferred.length ? transferred : null
+      if (!transferred.length) delete meta[key]
     }
   }
 

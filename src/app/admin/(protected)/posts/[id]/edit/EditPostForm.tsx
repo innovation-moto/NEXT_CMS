@@ -270,9 +270,17 @@ export default function EditPostForm({ post, initialCategories, sections }: Prop
                 {Object.entries(post.meta as Record<string, unknown>).map(([key, value]) => (
                   <div key={key}>
                     <p className="text-xs text-[#555]">{key}</p>
-                    <p className="mt-0.5 text-xs text-[#aaa] break-all">
-                      {Array.isArray(value) ? value.join(', ') : String(value ?? '')}
-                    </p>
+                    {Array.isArray(value) && value.length > 0 && typeof value[0] === 'string' && (value[0] as string).includes('/storage/v1/object/') ? (
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {(value as string[]).map((url, i) => (
+                          <img key={i} src={url} alt={key} className="h-16 w-16 rounded object-cover border border-[#2a2a2a]" />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-0.5 text-xs text-[#aaa] break-all">
+                        {Array.isArray(value) ? (value as unknown[]).join(', ') : String(value ?? '')}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
