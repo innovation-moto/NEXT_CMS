@@ -110,7 +110,7 @@ export default function NotionEditForm({ post, initialCategories, sections }: Pr
         </div>
         <div className="flex gap-2">
           <a
-            href={`/${post.type}/${post.slug}`}
+            href={`/admin/preview/${post.id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg border border-[#2a2a2a] px-4 py-2 text-sm text-[#888888] hover:border-accent/40 hover:text-white"
