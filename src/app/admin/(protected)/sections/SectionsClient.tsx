@@ -91,6 +91,13 @@ export default function SectionsClient({ initialSections }: Props) {
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  function handleCopy(name: string, id: string) {
+    navigator.clipboard.writeText(name)
+    setCopiedId(id)
+    setTimeout(() => setCopiedId(null), 1500)
+  }
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
@@ -128,16 +135,23 @@ export default function SectionsClient({ initialSections }: Props) {
         <div className="border-b border-[#2a2a2a] bg-[#1a1a28] px-5 py-3">
           <h2 className="text-sm font-medium text-white">登録済みセクション</h2>
         </div>
+        {/* Notion連携の説明ヘッダー */}
+        <div className="grid grid-cols-3 border-b border-[#2a2a2a] px-5 py-2 text-xs font-medium text-[#555]">
+          <span>セクション</span>
+          <span>Notionの「種別」に設定する値</span>
+          <span />
+        </div>
         {sections.length === 0 ? (
           <p className="px-5 py-8 text-center text-sm text-[#888888]">セクションがありません。</p>
         ) : (
           <ul className="divide-y divide-[#2a2a2a]">
             {sections.map((s) => (
-              <li key={s.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
+              <li key={s.id} className="grid grid-cols-3 items-center gap-4 px-5 py-3.5">
+                {/* セクション情報 */}
                 <div className="flex items-center gap-3">
                   {s.icon?.startsWith('http') ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.icon} alt={s.label} className="h-8 w-8 rounded-md border border-[#2a2a2a] object-cover" />
+                    <img src={s.icon} alt={s.label} className="h-8 w-8 flex-shrink-0 rounded-md border border-[#2a2a2a] object-cover" />
                   ) : (
                     <span className="text-xl">{s.icon || '📄'}</span>
                   )}
@@ -146,13 +160,32 @@ export default function SectionsClient({ initialSections }: Props) {
                     <p className="text-xs text-[#555]">/{s.name}/…</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(s.id)}
-                  disabled={deletingId === s.id}
-                  className="rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888888] transition-colors hover:border-red-800/50 hover:text-red-400 disabled:opacity-40"
-                >
-                  {deletingId === s.id ? '削除中...' : '削除'}
-                </button>
+
+                {/* Notion用のSelect値 */}
+                <div className="flex items-center gap-2">
+                  <code className="rounded-md border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-1.5 font-mono text-xs text-accent">
+                    {s.name}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(s.name, s.id)}
+                    className="rounded-md border border-[#2a2a2a] px-2.5 py-1.5 text-xs text-[#666] transition-colors hover:border-accent/40 hover:text-white"
+                    title="コピー"
+                  >
+                    {copiedId === s.id ? '✓ コピー済み' : 'コピー'}
+                  </button>
+                </div>
+
+                {/* 削除ボタン */}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => handleDelete(s.id)}
+                    disabled={deletingId === s.id}
+                    className="rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888888] transition-colors hover:border-red-800/50 hover:text-red-400 disabled:opacity-40"
+                  >
+                    {deletingId === s.id ? '削除中...' : '削除'}
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -191,11 +224,15 @@ export default function SectionsClient({ initialSections }: Props) {
         </form>
       </div>
 
-      <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a28] px-5 py-4">
-        <p className="text-xs text-[#666]">
-          セクションを追加すると、サイドバーのナビゲーションと記事の種別選択に反映されます。
-          フロントエンドには <code className="rounded bg-[#2a2a2a] px-1 py-0.5 font-mono text-[#aaa]">/[セクション名]/</code> のURLでアクセスできます。
-        </p>
+      {/* Notion連携の説明 */}
+      <div className="rounded-xl border border-accent/20 bg-accent/5 px-5 py-4 space-y-2">
+        <p className="text-xs font-medium text-accent">🔗 Notionとの連携方法</p>
+        <ol className="space-y-1.5 text-xs text-[#888888] list-decimal list-inside">
+          <li>Notionデータベースの「種別」プロパティ（Select）を開く</li>
+          <li>上の表の <span className="font-mono text-accent">Notion用の値</span> をそのまま新しいSelectオプションとして追加</li>
+          <li>記事ページの「種別」をそのオプションに設定する</li>
+          <li>次回の同期（5分以内）で自動的に該当セクションに振り分けられる</li>
+        </ol>
       </div>
     </div>
   )
