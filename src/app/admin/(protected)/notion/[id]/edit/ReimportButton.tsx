@@ -16,7 +16,7 @@ export default function ReimportButton({ pageId, postId }: Props) {
     setMessage('')
 
     try {
-      const res = await fetch(`/notion-import?page_id=${pageId}`, { method: 'GET' })
+      const res = await fetch(`/api/notion-import?page_id=${pageId}`, { method: 'GET' })
       if (res.ok) {
         setStatus('success')
         setMessage('Notionから再インポートしました。ページをリロードしてください。')
