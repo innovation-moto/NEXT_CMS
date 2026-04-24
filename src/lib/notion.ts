@@ -282,10 +282,19 @@ export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
     ? new Date(publishedAtProp.date.start).toISOString()
     : null
 
-  // 本文ブロック取得
-  const blocksResp = await notion.blocks.children.list({ block_id: pageId, page_size: 100 })
+  // 本文ブロック取得（REST APIを直接使用）
+  const blocksRes = await fetch(
+    `https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+        'Notion-Version': '2022-06-28',
+      },
+    }
+  )
+  const blocksData = await blocksRes.json()
   const rawBlocks: RawBlock[] = []
-  for (const block of blocksResp.results) {
+  for (const block of blocksData.results ?? []) {
     if (!isFullBlock(block)) continue
     rawBlocks.push(blockToRaw(block as BlockObjectResponse))
   }
