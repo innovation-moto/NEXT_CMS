@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Section } from '@/types/supabase'
@@ -96,7 +97,13 @@ export default function AdminSidebar({ userRole, sections }: Props) {
                     : 'text-[#888888] hover:bg-[#1a1a28] hover:text-white'
                 }`}
               >
-                <span className="w-5 text-center text-base">{item.icon}</span>
+                {item.icon?.startsWith('http') ? (
+                  <span className="relative h-5 w-5 flex-shrink-0 overflow-hidden rounded">
+                    <Image src={item.icon} alt="" fill className="object-cover" />
+                  </span>
+                ) : (
+                  <span className="w-5 text-center text-base">{item.icon}</span>
+                )}
                 {item.label}
               </Link>
             </li>
