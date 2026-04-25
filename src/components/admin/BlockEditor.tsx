@@ -5,12 +5,13 @@ import type { Block, BlockType } from '@/types/blocks'
 
 // ─── ブロック追加メニュー ───
 const BLOCK_MENU: { type: BlockType; label: string; icon: string; desc: string }[] = [
-  { type: 'heading',   label: '見出し',   icon: 'H',  desc: 'セクションのタイトル' },
-  { type: 'paragraph', label: '段落',     icon: '¶',  desc: 'テキストブロック' },
-  { type: 'image',     label: '画像',     icon: '🖼', desc: '画像を1枚挿入' },
-  { type: 'gallery',   label: 'ギャラリー', icon: '⊞', desc: '複数画像をグリッド表示' },
-  { type: 'list',      label: 'リスト',   icon: '☰',  desc: '箇条書き・番号付きリスト' },
-  { type: 'quote',     label: '引用',     icon: '❝',  desc: '引用ブロック' },
+  { type: 'heading',   label: '見出し',       icon: 'H',    desc: 'セクションのタイトル' },
+  { type: 'paragraph', label: '段落',         icon: '¶',    desc: 'テキストブロック' },
+  { type: 'image',     label: '画像',         icon: '🖼',   desc: '画像を1枚挿入' },
+  { type: 'gallery',   label: 'ギャラリー',   icon: '⊞',   desc: '複数画像をグリッド表示' },
+  { type: 'list',      label: 'リスト',       icon: '☰',   desc: '箇条書き・番号付きリスト' },
+  { type: 'quote',     label: '引用',         icon: '❝',   desc: '引用ブロック' },
+  { type: 'html',      label: 'カスタムHTML', icon: '</>',  desc: 'HTMLを直接記述' },
 ]
 
 function createBlock(type: BlockType): Block {
@@ -22,6 +23,7 @@ function createBlock(type: BlockType): Block {
     case 'gallery':   return { id, type, data: { images: [] } }
     case 'list':      return { id, type, data: { items: [''], ordered: false } }
     case 'quote':     return { id, type, data: { text: '', cite: '' } }
+    case 'html':      return { id, type, data: { code: '' } }
   }
 }
 
@@ -242,6 +244,39 @@ function ListBlockEditor({ block, onChange }: { block: Extract<Block, { type: 'l
   )
 }
 
+function HtmlBlockEditor({ block, onChange }: { block: Extract<Block, { type: 'html' }>; onChange: (b: Block) => void }) {
+  const [preview, setPreview] = useState(false)
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-[#555]">HTML / CSS / JavaScript</span>
+        <button
+          type="button"
+          onClick={() => setPreview((v) => !v)}
+          className={`rounded px-2 py-0.5 text-xs transition-colors ${preview ? 'bg-accent/20 text-accent' : 'text-[#555] hover:text-white'}`}
+        >
+          {preview ? 'コードを編集' : 'プレビュー'}
+        </button>
+      </div>
+      {preview ? (
+        <div
+          className="min-h-[80px] rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-3"
+          dangerouslySetInnerHTML={{ __html: block.data.code }}
+        />
+      ) : (
+        <textarea
+          value={block.data.code}
+          onChange={(e) => onChange({ ...block, data: { code: e.target.value } })}
+          placeholder={'<div class="my-section">\n  <!-- カスタムHTML -->\n</div>'}
+          rows={10}
+          spellCheck={false}
+          className="w-full resize-y rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] p-3 font-mono text-xs leading-relaxed text-green-300 placeholder-[#444] focus:border-accent focus:outline-none"
+        />
+      )}
+    </div>
+  )
+}
+
 function QuoteBlockEditor({ block, onChange }: { block: Extract<Block, { type: 'quote' }>; onChange: (b: Block) => void }) {
   return (
     <div className="space-y-2 border-l-2 border-accent pl-4">
@@ -312,6 +347,7 @@ function BlockItem({
       {block.type === 'gallery'   && <GalleryBlockEditor   block={block} onChange={onChange} />}
       {block.type === 'list'      && <ListBlockEditor      block={block} onChange={onChange} />}
       {block.type === 'quote'     && <QuoteBlockEditor     block={block} onChange={onChange} />}
+      {block.type === 'html'      && <HtmlBlockEditor      block={block} onChange={onChange} />}
     </div>
   )
 }

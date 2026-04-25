@@ -85,6 +85,11 @@ function BlockItem({ block }: { block: Block }) {
         </blockquote>
       )
 
+    case 'html':
+      return block.data.code ? (
+        <div dangerouslySetInnerHTML={{ __html: block.data.code }} />
+      ) : null
+
     default:
       return null
   }

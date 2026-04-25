@@ -1,6 +1,6 @@
 // ─── ブロックタイプ定義 ───
 
-export type BlockType = 'heading' | 'paragraph' | 'image' | 'list' | 'quote' | 'gallery'
+export type BlockType = 'heading' | 'paragraph' | 'image' | 'list' | 'quote' | 'gallery' | 'html'
 
 export interface HeadingBlock {
   id: string
@@ -32,6 +32,11 @@ export interface GalleryBlock {
   type: 'gallery'
   data: { images: { url: string; alt: string }[] }
 }
+export interface HtmlBlock {
+  id: string
+  type: 'html'
+  data: { code: string }
+}
 
 export type Block =
   | HeadingBlock
@@ -40,3 +45,4 @@ export type Block =
   | ListBlock
   | QuoteBlock
   | GalleryBlock
+  | HtmlBlock
