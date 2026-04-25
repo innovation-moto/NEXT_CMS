@@ -30,13 +30,24 @@ function createBlock(type: BlockType): Block {
 // ─── ブロック追加ボタン ───
 function AddBlockButton({ onAdd }: { onAdd: (type: BlockType) => void }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [openUpward, setOpenUpward] = useState(false)
+  const btnRef = useRef<HTMLButtonElement>(null)
+
+  function handleToggle() {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      // メニューの高さ約220px。残り空間が足りなければ上に開く
+      setOpenUpward(rect.bottom + 240 > window.innerHeight)
+    }
+    setOpen((v) => !v)
+  }
 
   return (
-    <div className="relative flex justify-center my-2" ref={ref}>
+    <div className="relative flex justify-center my-2">
       <button
+        ref={btnRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle}
         className="flex h-8 w-8 items-center justify-center rounded-full border border-[#2a2a2a] bg-[#1a1a2e] text-accent transition-all hover:border-accent hover:bg-accent/10"
         title="ブロックを追加"
       >
@@ -48,7 +59,7 @@ function AddBlockButton({ onAdd }: { onAdd: (type: BlockType) => void }) {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-10 z-20 w-72 rounded-xl border border-[#2a2a2a] bg-[#111118] p-3 shadow-2xl">
+          <div className={`absolute z-20 w-72 rounded-xl border border-[#2a2a2a] bg-[#111118] p-3 shadow-2xl ${openUpward ? 'bottom-10' : 'top-10'}`}>
             <p className="mb-2 px-1 text-xs font-medium text-[#555]">ブロックを選択</p>
             <div className="grid grid-cols-3 gap-2">
               {BLOCK_MENU.map((item) => (
