@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   type DbEntry = { id: string }
   const dbDatabases = ((configRow?.databases as DbEntry[] | null) ?? []).map(d => d.id)
   const envDb = process.env.NOTION_DATABASE_ID
-  const allDatabases = [...new Set([...dbDatabases, ...(envDb ? [envDb] : [])])]
+  const allDatabases = Array.from(new Set(dbDatabases.concat(envDb ? [envDb] : [])))
 
   if (allDatabases.length === 0) {
     return NextResponse.json({ error: 'データベースが設定されていません。管理画面のNotion連携からデータベースを追加してください。' }, { status: 400 })
