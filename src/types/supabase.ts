@@ -98,6 +98,7 @@ export type Database = {
           label: string
           icon: string
           sort_order: number
+          show_in_nav: boolean
           created_at: string
         }
         Insert: {
@@ -106,6 +107,7 @@ export type Database = {
           label: string
           icon?: string
           sort_order?: number
+          show_in_nav?: boolean
           created_at?: string
         }
         Update: {
@@ -114,6 +116,7 @@ export type Database = {
           label?: string
           icon?: string
           sort_order?: number
+          show_in_nav?: boolean
         }
         Relationships: []
       }

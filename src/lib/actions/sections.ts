@@ -18,7 +18,8 @@ export async function getSections(): Promise<Section[]> {
 export async function createSection(
   label: string,
   icon: string,
-  slug?: string
+  slug?: string,
+  showInNav: boolean = true
 ): Promise<{ data?: Section; error?: string }> {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
@@ -47,7 +48,7 @@ export async function createSection(
 
   const { data, error } = await adminSupabase
     .from('sections')
-    .insert({ name, label, icon, sort_order })
+    .insert({ name, label, icon, sort_order, show_in_nav: showInNav })
     .select()
     .single()
 
