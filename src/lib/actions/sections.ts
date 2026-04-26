@@ -56,6 +56,40 @@ export async function createSection(
   return { data: data as Section }
 }
 
+export async function updateSection(
+  id: string,
+  label: string,
+  icon: string,
+  slug: string,
+  showInNav: boolean
+): Promise<{ data?: Section; error?: string }> {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return { error: '認証が必要です' }
+
+  const name = slugify(slug, { lower: true, strict: true })
+  if (!name) return { error: 'スラッグを入力してください（英数字・ハイフン）' }
+
+  // 自分以外で同名がないか確認
+  const { data: existing } = await adminSupabase
+    .from('sections')
+    .select('id')
+    .eq('name', name)
+    .neq('id', id)
+    .maybeSingle()
+  if (existing) return { error: `"${name}" は既に使用されています` }
+
+  const { data, error } = await adminSupabase
+    .from('sections')
+    .update({ label, icon, name, show_in_nav: showInNav })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) return { error: error.message }
+  return { data: data as Section }
+}
+
 export async function deleteSection(id: string): Promise<{ error?: string }> {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
