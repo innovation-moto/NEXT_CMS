@@ -17,13 +17,18 @@ export async function getSections(): Promise<Section[]> {
 
 export async function createSection(
   label: string,
-  icon: string
+  icon: string,
+  slug?: string
 ): Promise<{ data?: Section; error?: string }> {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return { error: '認証が必要です' }
 
-  const name = slugify(label, { lower: true, strict: true, locale: 'ja' }) || `section-${Date.now()}`
+  const name = slug
+    ? slugify(slug, { lower: true, strict: true })
+    : slugify(label, { lower: true, strict: true, locale: 'ja' }) || `section-${Date.now()}`
+
+  if (!name) return { error: 'スラッグを入力してください（英数字・ハイフン）' }
 
   const { data: existing } = await adminSupabase
     .from('sections')

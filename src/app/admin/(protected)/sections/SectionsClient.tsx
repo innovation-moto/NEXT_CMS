@@ -87,11 +87,26 @@ function IconUploader({ value, onChange }: { value: string; onChange: (url: stri
 export default function SectionsClient({ initialSections }: Props) {
   const [sections, setSections] = useState<Section[]>(initialSections)
   const [label, setLabel] = useState('')
+  const [slug, setSlug] = useState('')
+  const [slugEdited, setSlugEdited] = useState(false)
   const [icon, setIcon] = useState('')
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [copiedId, setCopiedId] = useState<string | null>(null)
+
+  function handleLabelChange(value: string) {
+    setLabel(value)
+    if (!slugEdited) {
+      // ラベルからASCII文字のみ抽出してスラッグ候補を生成
+      const auto = value
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+      setSlug(auto)
+    }
+  }
 
   function handleCopy(name: string, id: string) {
     navigator.clipboard.writeText(name)
@@ -101,15 +116,17 @@ export default function SectionsClient({ initialSections }: Props) {
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
-    if (!label.trim()) return
+    if (!label.trim() || !slug.trim()) return
     setAdding(true)
     setAddError('')
-    const result = await createSection(label.trim(), icon)
+    const result = await createSection(label.trim(), icon, slug.trim())
     if (result.error) {
       setAddError(result.error)
     } else if (result.data) {
       setSections(prev => [...prev, result.data!])
       setLabel('')
+      setSlug('')
+      setSlugEdited(false)
       setIcon('')
     }
     setAdding(false)
@@ -203,11 +220,31 @@ export default function SectionsClient({ initialSections }: Props) {
             <input
               type="text"
               value={label}
-              onChange={(e) => setLabel(e.target.value)}
+              onChange={(e) => handleLabelChange(e.target.value)}
               placeholder="例: コラム"
               className={`w-full ${inputClass}`}
             />
-            <p className="mt-1 text-xs text-[#555]">URLは自動生成されます（例: /column/...）</p>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-[#888888]">
+              スラッグ（URL）<span className="text-accent">*</span>
+            </label>
+            <div className="flex items-center rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] focus-within:border-accent focus-within:ring-1 focus-within:ring-accent/30">
+              <span className="pl-4 text-sm text-[#555]">/</span>
+              <input
+                type="text"
+                value={slug}
+                onChange={(e) => {
+                  setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))
+                  setSlugEdited(true)
+                }}
+                placeholder="column"
+                className="flex-1 bg-transparent px-2 py-2.5 text-sm text-white placeholder-[#555] focus:outline-none"
+              />
+              <span className="pr-4 text-sm text-[#555]">/…</span>
+            </div>
+            <p className="mt-1 text-xs text-[#555]">英数字とハイフンのみ使用できます</p>
           </div>
 
           <IconUploader value={icon} onChange={setIcon} />
@@ -216,7 +253,7 @@ export default function SectionsClient({ initialSections }: Props) {
 
           <button
             type="submit"
-            disabled={adding || !label.trim()}
+            disabled={adding || !label.trim() || !slug.trim()}
             className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/80 disabled:opacity-50"
           >
             {adding ? '追加中...' : '追加する'}
