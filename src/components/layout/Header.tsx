@@ -1,7 +1,9 @@
+import { unstable_noStore as noStore } from 'next/cache'
 import { adminSupabase } from '@/lib/supabase/admin'
 import HeaderClient from './HeaderClient'
 
 export default async function Header() {
+  noStore()
   const { data: sections } = await adminSupabase
     .from('sections')
     .select('name, label')
