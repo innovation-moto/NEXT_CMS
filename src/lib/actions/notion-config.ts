@@ -92,7 +92,7 @@ export async function testNotionConnection(): Promise<{ success: boolean; name?:
 
 export async function addNotionDatabase(input: string, label: string): Promise<{ error?: string }> {
   await assertAuth()
-  const databaseId = extractNotionId(input)
+  const databaseId = await extractNotionId(input)
   if (!databaseId) return { error: 'URLまたはデータベースIDを入力してください' }
 
   const row = await getRow()
@@ -173,11 +173,11 @@ export async function syncDatabase(databaseId: string): Promise<{ synced: number
 
 export async function importPageFromInput(input: string): Promise<ImportResult> {
   await assertAuth()
-  const pageId = extractNotionId(input)
+  const pageId = await extractNotionId(input)
   return importNotionPage(pageId)
 }
 
-export function extractNotionId(input: string): string {
+export async function extractNotionId(input: string): Promise<string> {
   const trimmed = input.trim()
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed)) return trimmed
   if (/^[0-9a-f]{32}$/i.test(trimmed)) {
