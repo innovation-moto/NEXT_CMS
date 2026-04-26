@@ -6,13 +6,15 @@ import type {
 } from '@notionhq/client/build/src/api-endpoints'
 import { adminSupabase } from '@/lib/supabase/admin'
 
-export function getNotionClient() {
-  const apiKey = process.env.NOTION_API_KEY
-  if (!apiKey) throw new Error('NOTION_API_KEY is not set')
-  return new Client({
-    auth: apiKey,
-    fetch: (url, init) => fetch(url, { ...init, cache: 'no-store' }),
-  })
+export async function getApiKey(): Promise<string> {
+  if (process.env.NOTION_API_KEY) return process.env.NOTION_API_KEY
+  const { data } = await adminSupabase
+    .from('notion_config')
+    .select('api_key')
+    .limit(1)
+    .maybeSingle()
+  if (data?.api_key) return data.api_key as string
+  throw new Error('NOTION_API_KEY が設定されていません。管理画面のNotion連携設定から設定してください。')
 }
 
 // ─── Notion画像 → Supabase Storage へ転送 ────────────────────────────────────
@@ -246,13 +248,14 @@ export interface NotionPageData {
 }
 
 export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
+  const apiKey = await getApiKey()
   // SDKを使わず直接REST APIでページプロパティを取得（Next.jsキャッシュ完全回避）
   const pageApiRes = await fetch(
     `https://api.notion.com/v1/pages/${pageId}`,
     {
       cache: 'no-store',
       headers: {
-        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Notion-Version': '2022-06-28',
       },
     }
@@ -351,7 +354,7 @@ export async function fetchNotionPage(pageId: string): Promise<NotionPageData> {
     {
       cache: 'no-store',
       headers: {
-        Authorization: `Bearer ${process.env.NOTION_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Notion-Version': '2022-06-28',
       },
     }

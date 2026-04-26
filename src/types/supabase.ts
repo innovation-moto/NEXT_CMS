@@ -120,6 +120,27 @@ export type Database = {
         }
         Relationships: []
       }
+      notion_config: {
+        Row: {
+          id: string
+          api_key: string | null
+          databases: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          api_key?: string | null
+          databases?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          api_key?: string | null
+          databases?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           id: string

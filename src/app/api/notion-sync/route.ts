@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { importNotionPage } from '@/lib/notion-import'
+import { adminSupabase } from '@/lib/supabase/admin'
+import { getApiKey } from '@/lib/notion'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,60 +12,76 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const databaseId = process.env.NOTION_DATABASE_ID
-  const apiKey = process.env.NOTION_API_KEY
-  if (!databaseId) {
-    return NextResponse.json({ error: 'NOTION_DATABASE_ID is not set' }, { status: 500 })
-  }
-  if (!apiKey) {
-    return NextResponse.json({ error: 'NOTION_API_KEY is not set' }, { status: 500 })
-  }
-
+  let apiKey: string
   try {
-    // 直近2時間以内に更新・追加されたページを取得（GitHub Actionsのcron遅延に対応）
-    const since = new Date(Date.now() - 120 * 60 * 1000).toISOString()
-
-    const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Notion-Version': '2022-06-28',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        filter: {
-          timestamp: 'last_edited_time',
-          last_edited_time: { after: since },
-        },
-      }),
-    })
-
-    if (!res.ok) {
-      const err = await res.text()
-      return NextResponse.json({ error: `Notion API error: ${err}` }, { status: 502 })
-    }
-
-    const data = await res.json()
-    const pageIds: string[] = data.results.map((page: { id: string }) => page.id)
-
-    if (pageIds.length === 0) {
-      return NextResponse.json({ synced: 0, message: '変更なし' })
-    }
-
-    // 直列処理（Notion APIのレート制限対策）
-    let succeeded = 0
-    let failed = 0
-    for (const pageId of pageIds) {
-      const result = await importNotionPage(pageId)
-      if (result.success) succeeded++
-      else failed++
-    }
-
-    return NextResponse.json({ synced: succeeded, failed, total: pageIds.length })
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : '同期エラー' },
-      { status: 500 }
-    )
+    apiKey = await getApiKey()
+  } catch {
+    return NextResponse.json({ error: 'NOTION_API_KEY が設定されていません' }, { status: 500 })
   }
+
+  // DB登録済みのデータベース + 環境変数のデータベースを統合
+  const { data: configRow } = await adminSupabase
+    .from('notion_config')
+    .select('databases')
+    .limit(1)
+    .maybeSingle()
+
+  type DbEntry = { id: string }
+  const dbDatabases = ((configRow?.databases as DbEntry[] | null) ?? []).map(d => d.id)
+  const envDb = process.env.NOTION_DATABASE_ID
+  const allDatabases = [...new Set([...dbDatabases, ...(envDb ? [envDb] : [])])]
+
+  if (allDatabases.length === 0) {
+    return NextResponse.json({ error: 'データベースが設定されていません。管理画面のNotion連携からデータベースを追加してください。' }, { status: 400 })
+  }
+
+  const since = new Date(Date.now() - 120 * 60 * 1000).toISOString()
+
+  let totalSynced = 0
+  let totalFailed = 0
+  const dbResults: Record<string, { synced: number; failed: number }> = {}
+
+  for (const databaseId of allDatabases) {
+    try {
+      const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Notion-Version': '2022-06-28',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          filter: {
+            timestamp: 'last_edited_time',
+            last_edited_time: { after: since },
+          },
+        }),
+      })
+
+      if (!res.ok) continue
+
+      const data = await res.json()
+      const pageIds: string[] = (data.results as Array<{ id: string }>).map(p => p.id)
+
+      let synced = 0, failed = 0
+      for (const pageId of pageIds) {
+        const result = await importNotionPage(pageId)
+        if (result.success) synced++
+        else failed++
+      }
+
+      dbResults[databaseId] = { synced, failed }
+      totalSynced += synced
+      totalFailed += failed
+    } catch {
+      dbResults[databaseId] = { synced: 0, failed: 1 }
+      totalFailed++
+    }
+  }
+
+  return NextResponse.json({
+    synced: totalSynced,
+    failed: totalFailed,
+    databases: dbResults,
+  })
 }
