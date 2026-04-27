@@ -6,7 +6,7 @@ export type ImportResult =
   | { success: true; action: 'created' | 'updated'; title: string; slug: string; type: string; status: string; postId: string; metaKeys: string[] }
   | { success: false; error: string }
 
-export async function importNotionPage(pageId: string): Promise<ImportResult> {
+export async function importNotionPage(pageId: string, databaseId?: string): Promise<ImportResult> {
   let notionData
   try {
     notionData = await fetchNotionPage(pageId)
@@ -80,6 +80,7 @@ export async function importNotionPage(pageId: string): Promise<ImportResult> {
         published_at: notionData.published_at,
         meta: Object.keys(notionData.meta).length ? notionData.meta : null,
         notion_page_id: pageId,
+        notion_database_id: databaseId ?? null,
       })
       .select('id')
       .single()

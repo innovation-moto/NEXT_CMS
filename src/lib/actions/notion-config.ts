@@ -161,7 +161,7 @@ export async function syncDatabase(databaseId: string): Promise<{ synced: number
     let synced = 0, failed = 0
     const errors: string[] = []
     for (const pageId of pageIds) {
-      const result = await importNotionPage(pageId)
+      const result = await importNotionPage(pageId, databaseId)
       if (result.success) synced++
       else { failed++; errors.push(result.error) }
     }

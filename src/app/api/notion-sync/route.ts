@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
       let synced = 0, failed = 0
       for (const pageId of pageIds) {
-        const result = await importNotionPage(pageId)
+        const result = await importNotionPage(pageId, databaseId)
         if (result.success) synced++
         else failed++
       }
