@@ -64,9 +64,10 @@ export default function NotionClient({ config: initialConfig }: Props) {
   }
 
   async function handleClearKey() {
-    if (!confirm('APIキーの設定を削除しますか？')) return
+    if (!confirm('Notion API接続を解除しますか？\n※ インポート済みの記事は削除されません。\n※ データベース設定もリセットされます。')) return
     await clearNotionApiKey()
     setConfig(prev => ({ ...prev, maskedApiKey: null }))
+    setDatabases([])
     setShowKeyForm(true)
     setTestResult(null)
   }
@@ -150,21 +151,34 @@ export default function NotionClient({ config: initialConfig }: Props) {
         </div>
 
         {config.hasEnvApiKey ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-4 py-3">
-            <span className="text-xs text-[#555]">APIキー（環境変数）</span>
-            <code className="flex-1 font-mono text-xs text-accent">{config.maskedApiKey}</code>
-            <span className="rounded-full bg-[#1a1a2e] px-2 py-0.5 text-xs text-[#888]">ENV</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-4 py-3">
+              <span className="text-xs text-[#555]">APIキー（環境変数）</span>
+              <code className="flex-1 font-mono text-xs text-accent">{config.maskedApiKey}</code>
+              <span className="rounded-full bg-[#1a1a2e] px-2 py-0.5 text-xs text-[#888]">ENV</span>
+            </div>
+            <p className="text-xs text-[#555]">
+              環境変数（<code className="text-[#888]">NOTION_API_KEY</code>）で設定されています。解除する場合はVercelの環境変数から削除してください。
+            </p>
           </div>
         ) : !showKeyForm ? (
-          <div className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-4 py-3">
-            <span className="text-xs text-[#555]">APIキー</span>
-            <code className="flex-1 font-mono text-xs text-accent">{config.maskedApiKey}</code>
-            <button onClick={() => setShowKeyForm(true)}
-              className="text-xs text-[#666] hover:text-white transition-colors">変更</button>
-            {!config.hasEnvApiKey && (
-              <button onClick={handleClearKey}
-                className="text-xs text-[#666] hover:text-red-400 transition-colors">削除</button>
-            )}
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-4 py-3">
+              <span className="text-xs text-[#555]">APIキー</span>
+              <code className="flex-1 font-mono text-xs text-accent">{config.maskedApiKey}</code>
+              <button onClick={() => setShowKeyForm(true)}
+                className="rounded-lg border border-[#2a2a2a] px-3 py-1.5 text-xs text-[#888] hover:border-accent/40 hover:text-white transition-colors">
+                変更
+              </button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={handleClearKey}
+                className="rounded-lg border border-red-900/50 px-4 py-2 text-xs text-red-400 hover:bg-red-900/20 transition-colors"
+              >
+                接続を解除する
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-3">

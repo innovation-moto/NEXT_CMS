@@ -65,7 +65,7 @@ export async function saveNotionApiKey(apiKey: string): Promise<{ error?: string
 
 export async function clearNotionApiKey(): Promise<{ error?: string }> {
   await assertAuth()
-  await upsert({ api_key: null })
+  await upsert({ api_key: null, databases: [] })
   return {}
 }
 
